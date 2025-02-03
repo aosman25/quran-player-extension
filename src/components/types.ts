@@ -1,10 +1,11 @@
 export interface SurahData {
-    id: string;
+    id: number;
     name: {
       arabicName: string;
       englishName: string;
       literalName: string;
     };
+    playing: boolean
   }
 
 export interface rawSurahData {
