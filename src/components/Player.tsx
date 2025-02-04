@@ -1,13 +1,23 @@
+import { useContext } from "react";
 import AudioPlayer from "react-modern-audio-player";
+import { AudioPlayerStateContext } from "react-modern-audio-player";
+import { GlobalStatesContext } from "../types";
+import { GlobalStates } from "../GlobalStates";
+
 const Player = () => {
-  const playList = [
-    {
-      name: "Surat Alnassa",
-      writer: "Mishari Alafassi",
-      src: "https://download.quranicaudio.com/quran/mishaari_raashid_al_3afaasee/004.mp3",
-      id: 1,
-    },
-  ];
+  const { setPlaying, playing } = useContext<GlobalStatesContext>(GlobalStates);
+  const CustomComponent = ({
+    audioPlayerState,
+  }: {
+    audioPlayerState?: AudioPlayerStateContext;
+  }) => {
+    if (audioPlayerState?.curPlayId != playing) {
+      setPlaying(audioPlayerState?.curPlayId as number);
+    }
+    return null;
+  };
+
+  const { playlist } = useContext<GlobalStatesContext>(GlobalStates);
   const progressType = "bar";
   const playerPlacement = "bottom-left";
   const playListPlacement = "top";
@@ -16,10 +26,11 @@ const Player = () => {
 
   return (
     <AudioPlayer
-      playList={playList}
+      playList={playlist}
       activeUI={{
         ...activeUI,
         progress: progressType,
+        playList: false,
       }}
       placement={{
         player: playerPlacement,
@@ -28,7 +39,11 @@ const Player = () => {
       rootContainerProps={{
         width,
       }}
-    />
+    >
+      <AudioPlayer.CustomComponent id="playerCustomComponent">
+        <CustomComponent />
+      </AudioPlayer.CustomComponent>
+    </AudioPlayer>
   );
 };
 

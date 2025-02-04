@@ -1,21 +1,19 @@
-import { SurahData } from "./types";
+import { SurahData } from "../types";
 import "../styles/components/Surah.scss";
 import { useContext } from "react";
 import { GlobalStates } from "../GlobalStates";
 import { GlobalStatesContext } from "../types";
-const Surah = ({ id, name, playing }: SurahData) => {
+const Surah = ({ id, name }: SurahData) => {
+  const { playing } = useContext<GlobalStatesContext>(GlobalStates);
   const { englishName, literalName } = name;
-  const { setPlaying, qari } = useContext<GlobalStatesContext>(GlobalStates);
+  const { setPlaying } = useContext<GlobalStatesContext>(GlobalStates);
   const onClick = () => {
-    setPlaying({
-      qariID: qari,
-      surahID: id,
-    });
+    setPlaying(id);
   };
   return (
     <>
       <div
-        style={playing ? { backgroundColor: "#1DB954" } : {}}
+        style={playing == id ? { backgroundColor: "#1DB954" } : {}}
         onClick={onClick}
         className="surah-box"
       >
