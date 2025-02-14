@@ -57,7 +57,6 @@ function App() {
     [surahsList]
   );
   const [playlist, setPlaylist] = useState<Play[]>(generatePlaylist(qari));
-  console.log(playlist);
   return (
     <GlobalStates.Provider
       value={{

@@ -1,6 +1,6 @@
 import { GlobalStates } from "../GlobalStates";
 import "../styles/components/Player.scss";
-import { useRef, useEffect, useContext } from "react";
+import { useRef, useEffect, useContext, useState } from "react";
 import { GlobalStatesContext } from "../types";
 
 const Player = () => {
@@ -8,9 +8,14 @@ const Player = () => {
   const pointerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
+  const playBtnRef = useRef<HTMLButtonElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioStateRef = useRef<boolean>(false);
+  const [audioState, setAudioState] = useState<{
+    playing: boolean;
+    duration: number;
+  } | null>(null);
   const { playlist, playing } = useContext<GlobalStatesContext>(GlobalStates);
+  const playBtnTimeout = useRef(null);
   const isDragging = useRef(false);
   const coords = useRef({ startX: 0, lastX: 0 });
 
@@ -59,36 +64,108 @@ const Player = () => {
       player.removeEventListener("mouseup", onMouseUp);
     };
 
-    const onMouseClick = (e: MouseEvent) => {
-      if (isDragging.current) return;
-
-      const clickX = e.clientX - container.offsetLeft;
-      pointer.style.left = `${clickX - 5}px`;
-      progressBar.style.width = `${(clickX / maxX) * 100}%`;
-    };
-
+    audio.addEventListener("loadedmetadata", onMetaDataLoad);
     pointer.addEventListener("mousedown", onMouseDown);
-    container.addEventListener("click", onMouseClick);
 
     return () => {
       pointer.removeEventListener("mousedown", onMouseDown);
-      container.removeEventListener("click", onMouseClick);
     };
   }, []);
 
-  const handlePlayAudio = () => {
+  useEffect(() => {
+    if (
+      !progressRef.current ||
+      !pointerRef.current ||
+      !audioRef.current ||
+      !containerRef.current ||
+      !audioState
+    )
+      return;
+
+    const progress = progressRef.current;
+    const audio = audioRef.current;
+    const pointer = pointerRef.current;
+    const container = containerRef.current;
+
+    const timeRemaining = (audioState.duration - audio.currentTime) * 1000;
+    const currentProgress = audio.currentTime / audioState.duration;
+    const containerRect = container.getBoundingClientRect();
+    const maxX = containerRect.width;
+
+    if (audioState.playing) {
+      progress.style.width = "100%";
+      progress.style.transition = `width ${timeRemaining}ms linear`;
+      pointer.style.left = `${maxX - 5}px`;
+      pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+    } else {
+      progress.style.width = `${currentProgress * 100}%`;
+      progress.style.transition = "none";
+      pointer.style.left = `${maxX * currentProgress - 5}px`;
+      pointer.style.transition = "opacity 300ms ease-out";
+    }
+
+    // Cleanup: Ensure smooth updates on dependency changes
+    return () => {
+      progress.style.transition = "none";
+    };
+  }, [audioState]);
+
+  const onMetaDataLoad = () => {
     if (!audioRef.current) return;
     const audio = audioRef.current;
-    if (audioStateRef.current) {
+    setAudioState({ playing: false, duration: audio.duration });
+  };
+  const handlePlayAudio = () => {
+    if (!audioRef.current || !audioState) return;
+    const audio = audioRef.current;
+    if (audioState?.playing) {
       audio.pause();
     } else {
       audio.play();
     }
-    audioStateRef.current = !audioStateRef.current;
+    setAudioState({ ...audioState, playing: !audioState.playing });
+  };
+  const onMouseClick = (e: MouseEvent) => {
+    if (
+      !containerRef.current ||
+      !pointerRef.current ||
+      !progressRef.current ||
+      !playerRef.current ||
+      !audioRef.current ||
+      !audioState ||
+      !playBtnRef.current
+    )
+      return;
+    const pointer = pointerRef.current;
+    const container = containerRef.current;
+    const progressBar = progressRef.current;
+    const audio = audioRef.current;
+    const playBtn = playBtnRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const maxX = containerRect.width;
+    if (isDragging.current || !audioState) return;
+
+    const { duration } = audioState;
+    const clickX = e.clientX - container.offsetLeft;
+    const audioProgress = (clickX / maxX) * 100;
+    pointer.style.left = `${clickX - 5}px`;
+    progressBar.style.width = `${audioProgress}%`;
+    progressBar.style.transition = "none";
+    audio.pause();
+    setAudioState({ ...audioState, playing: false });
+    if (playBtnTimeout.current) {
+      clearTimeout(playBtnTimeout.current);
+    }
+    playBtnTimeout.current = setTimeout(() => playBtn.click(), 300);
+    audio.currentTime = (duration * audioProgress) / 100;
   };
   return (
     <div ref={playerRef} className="player">
-      <audio ref={audioRef} src={playlist[playing - 1].src}></audio>
+      <audio
+        ref={audioRef}
+        src={playlist[playing - 1].src}
+        onLoadedMetadata={onMetaDataLoad}
+      ></audio>
       <div className="audio-content">
         <p className="surah-name">Surat Al-Fatheh</p>
         <p className="qari-name">Mishari Elafassi</p>
@@ -100,7 +177,11 @@ const Player = () => {
             <span className="end-timestamp">/ 00:51</span>
           </p>
         </div>
-        <div ref={containerRef} className="bar-container">
+        <div
+          ref={containerRef}
+          onClick={(e) => onMouseClick(e)}
+          className="bar-container"
+        >
           <div ref={pointerRef} className="pointer"></div>
           <div ref={progressRef} className="progress-bar"></div>
         </div>
@@ -159,7 +240,11 @@ const Player = () => {
             <path d="M5 5h2v6h-2v-6z"></path>
           </svg>
         </button>
-        <button onClick={handlePlayAudio} className="play-button">
+        <button
+          ref={playBtnRef}
+          onClick={handlePlayAudio}
+          className="play-button"
+        >
           <svg
             stroke="currentColor"
             fill="currentColor"
