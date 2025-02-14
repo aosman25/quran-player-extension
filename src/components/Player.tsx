@@ -1,11 +1,16 @@
+import { GlobalStates } from "../GlobalStates";
 import "../styles/components/Player.scss";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useContext } from "react";
+import { GlobalStatesContext } from "../types";
 
 const Player = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioStateRef = useRef<boolean>(false);
+  const { playlist, playing } = useContext<GlobalStatesContext>(GlobalStates);
   const isDragging = useRef(false);
   const coords = useRef({ startX: 0, lastX: 0 });
 
@@ -14,7 +19,8 @@ const Player = () => {
       !containerRef.current ||
       !pointerRef.current ||
       !progressRef.current ||
-      !playerRef.current
+      !playerRef.current ||
+      !audioRef.current
     )
       return;
 
@@ -22,6 +28,7 @@ const Player = () => {
     const container = containerRef.current;
     const progressBar = progressRef.current;
     const player = playerRef.current;
+    const audio = audioRef.current;
 
     const containerRect = container.getBoundingClientRect();
     const minX = 0;
@@ -68,8 +75,20 @@ const Player = () => {
       container.removeEventListener("click", onMouseClick);
     };
   }, []);
+
+  const handlePlayAudio = () => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (audioStateRef.current) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    audioStateRef.current = !audioStateRef.current;
+  };
   return (
     <div ref={playerRef} className="player">
+      <audio ref={audioRef} src={playlist[playing - 1].src}></audio>
       <div className="audio-content">
         <p className="surah-name">Surat Al-Fatheh</p>
         <p className="qari-name">Mishari Elafassi</p>
@@ -140,7 +159,7 @@ const Player = () => {
             <path d="M5 5h2v6h-2v-6z"></path>
           </svg>
         </button>
-        <button className="play-button">
+        <button onClick={handlePlayAudio} className="play-button">
           <svg
             stroke="currentColor"
             fill="currentColor"
