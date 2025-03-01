@@ -1,6 +1,6 @@
 import { GlobalStates } from "../GlobalStates";
 import "../styles/components/Player.scss";
-import { useRef, useEffect, useContext, useState } from "react";
+import { useRef, useEffect, useContext, useState, useCallback } from "react";
 import { GlobalStatesContext } from "../types";
 
 const Player = () => {
@@ -15,9 +15,113 @@ const Player = () => {
     duration: number;
   } | null>(null);
   const { playlist, playing } = useContext<GlobalStatesContext>(GlobalStates);
-  const playBtnTimeout = useRef(null);
+  const playBtnTimeout = useRef<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Handle metadata load
+  const onMetaDataLoad = useCallback(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    setAudioState({ playing: false, duration: audio.duration });
+  }, []);
+
+  // Handle play/pause audio
+  const handlePlayAudio = useCallback(() => {
+    if (!audioRef.current || !audioState) return;
+    const audio = audioRef.current;
+    if (audioState.playing) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setAudioState({ ...audioState, playing: !audioState.playing });
+  }, [audioState]);
+
+  // Handle click on progress bar
+  const onMouseClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (
+        !containerRef.current ||
+        !pointerRef.current ||
+        !progressRef.current ||
+        !audioRef.current ||
+        !audioState ||
+        !playBtnRef.current
+      )
+        return;
+
+      const pointer = pointerRef.current;
+      const container = containerRef.current;
+      const progressBar = progressRef.current;
+      const audio = audioRef.current;
+      const playBtn = playBtnRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const maxX = containerRect.width;
+
+      const { duration } = audioState;
+      const clickX = e.clientX - containerRect.left;
+      const audioProgress = (clickX / maxX) * 100;
+      pointer.style.left = `${clickX - 5}px`;
+      progressBar.style.width = `${audioProgress}%`;
+      progressBar.style.transition = "none";
+      audio.pause();
+      setAudioState({ ...audioState, playing: false });
+
+      if (playBtnTimeout.current) {
+        clearTimeout(playBtnTimeout.current);
+      }
+      playBtnTimeout.current = setTimeout(() => playBtn.click(), 300);
+      audio.currentTime = (duration * audioProgress) / 100;
+    },
+    [audioState]
+  );
+
+  // Handle mouse move during drag
+  const onMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (
+        !containerRef.current ||
+        !pointerRef.current ||
+        !progressRef.current ||
+        !audioRef.current ||
+        !audioState ||
+        !playBtnRef.current ||
+        !isDragging
+      )
+        return;
+
+      const pointer = pointerRef.current;
+      const container = containerRef.current;
+      const progressBar = progressRef.current;
+      const audio = audioRef.current;
+      const playBtn = playBtnRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const maxX = containerRect.width;
+      const minX = 0;
+
+      const { duration } = audioState;
+      const moveX = e.clientX - containerRect.left;
+      const clickX = Math.max(minX, Math.min(maxX, moveX));
+      const audioProgress = (clickX / maxX) * 100;
+      pointer.style.left = `${clickX - 5}px`;
+      progressBar.style.width = `${audioProgress}%`;
+      progressBar.style.transition = "none";
+      audio.pause();
+      setAudioState({ ...audioState, playing: false });
+
+      if (playBtnTimeout.current) {
+        clearTimeout(playBtnTimeout.current);
+      }
+      playBtnTimeout.current = setTimeout(() => {
+        setIsDragging(false);
+        playBtn.click();
+      }, 300);
+      audio.currentTime = (duration * audioProgress) / 100;
+    },
+    [audioState, isDragging]
+  );
+
+  // Update progress bar and pointer position
   useEffect(() => {
     if (
       !progressRef.current ||
@@ -50,101 +154,25 @@ const Player = () => {
       pointer.style.transition = "opacity 300ms ease-out";
     }
 
-    // Cleanup: Ensure smooth updates on dependency changes
+    // Cleanup
     return () => {
       progress.style.transition = "none";
     };
   }, [audioState]);
-  const onMetaDataLoad = () => {
-    if (!audioRef.current) return;
-    const audio = audioRef.current;
-    setAudioState({ playing: false, duration: audio.duration });
-  };
-  const handlePlayAudio = () => {
-    if (!audioRef.current || !audioState) return;
-    const audio = audioRef.current;
-    if (audioState?.playing) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
-    setAudioState({ ...audioState, playing: !audioState.playing });
-  };
-  const onMouseClick = (e: MouseEvent) => {
-    if (
-      !containerRef.current ||
-      !pointerRef.current ||
-      !progressRef.current ||
-      !playerRef.current ||
-      !audioRef.current ||
-      !audioState ||
-      !playBtnRef.current
-    )
-      return;
-    const pointer = pointerRef.current;
-    const container = containerRef.current;
-    const progressBar = progressRef.current;
-    const audio = audioRef.current;
-    const playBtn = playBtnRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const maxX = containerRect.width;
 
-    const { duration } = audioState;
-    const clickX = e.clientX - container.offsetLeft;
-    const audioProgress = (clickX / maxX) * 100;
-    pointer.style.left = `${clickX - 5}px`;
-    progressBar.style.width = `${audioProgress}%`;
-    progressBar.style.transition = "none";
-    audio.pause();
-    setAudioState({ ...audioState, playing: false });
-    if (playBtnTimeout.current) {
-      clearTimeout(playBtnTimeout.current);
+  // Add/remove mousemove event listener for dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => onMouseMove(e);
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
     }
-    playBtnTimeout.current = setTimeout(() => playBtn.click(), 300);
-    audio.currentTime = (duration * audioProgress) / 100;
-  };
-  const onMouseMove = (e: MouseEvent) => {
-    if (
-      !containerRef.current ||
-      !pointerRef.current ||
-      !progressRef.current ||
-      !playerRef.current ||
-      !audioRef.current ||
-      !audioState ||
-      !playBtnRef.current ||
-      !isDragging
-    )
-      return;
-    const pointer = pointerRef.current;
-    const container = containerRef.current;
-    const progressBar = progressRef.current;
-    const audio = audioRef.current;
-    const playBtn = playBtnRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const maxX = containerRect.width;
-    const minX = 0;
-
-    const { duration } = audioState;
-    const moveX = e.clientX - container.offsetLeft;
-    const clickX = Math.max(minX, Math.min(maxX, moveX));
-    const audioProgress = (clickX / maxX) * 100;
-    pointer.style.left = `${clickX - 5}px`;
-    progressBar.style.width = `${audioProgress}%`;
-    progressBar.style.transition = "none";
-    audio.pause();
-    setAudioState({ ...audioState, playing: false });
-    if (playBtnTimeout.current) {
-      clearTimeout(playBtnTimeout.current);
-    }
-    playBtnTimeout.current = setTimeout(() => {
-      setIsDragging(false);
-      playBtn.click();
-    }, 300);
-    audio.currentTime = (duration * audioProgress) / 100;
-  };
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [isDragging, onMouseMove]);
 
   return (
-    <div ref={playerRef} onMouseMove={(e) => onMouseMove(e)} className="player">
+    <div ref={playerRef} className="player">
       <audio
         ref={audioRef}
         src={playlist[playing - 1].src}
@@ -163,7 +191,7 @@ const Player = () => {
         </div>
         <div
           ref={containerRef}
-          onClick={(e) => onMouseClick(e)}
+          onClick={onMouseClick}
           className="bar-container"
         >
           <div
@@ -180,15 +208,14 @@ const Player = () => {
           <svg
             stroke="currentColor"
             fill="none"
-            stroke-width="2"
+            strokeWidth="2"
             viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             height="1em"
             width="1em"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <desc></desc>
             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
             <path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"></path>
             <path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"></path>
@@ -198,15 +225,14 @@ const Player = () => {
           <svg
             stroke="currentColor"
             fill="none"
-            stroke-width="2"
+            strokeWidth="2"
             viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             height="100%"
             width="100%"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <desc></desc>
             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
             <path d="M15 8a5 5 0 0 1 0 8"></path>
             <path d="M17.7 5a9 9 0 0 1 0 14"></path>
@@ -217,7 +243,7 @@ const Player = () => {
           <svg
             stroke="currentColor"
             fill="currentColor"
-            stroke-width="0"
+            strokeWidth="0"
             version="1.1"
             viewBox="0 0 16 16"
             height="1em"
@@ -237,7 +263,7 @@ const Player = () => {
           <svg
             stroke="currentColor"
             fill="currentColor"
-            stroke-width="0"
+            strokeWidth="0"
             viewBox="0 0 24 24"
             height="1em"
             width="1em"
@@ -251,7 +277,7 @@ const Player = () => {
           <svg
             stroke="currentColor"
             fill="currentColor"
-            stroke-width="0"
+            strokeWidth="0"
             version="1.1"
             viewBox="0 0 16 16"
             height="1em"
