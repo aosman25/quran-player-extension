@@ -2,7 +2,10 @@ import { GlobalStates } from "../GlobalStates";
 import "../styles/components/Player.scss";
 import { useRef, useEffect, useContext, useState, useCallback } from "react";
 import { GlobalStatesContext } from "../types";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 
+dayjs.extend(duration);
 const Player = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
@@ -16,7 +19,9 @@ const Player = () => {
   } | null>(null);
   const { playlist, playing } = useContext<GlobalStatesContext>(GlobalStates);
   const playBtnTimeout = useRef<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const intervalRef = useRef<number | null>(null);
+  const [now, setNow] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   // Handle metadata load
   const onMetaDataLoad = useCallback(() => {
@@ -30,8 +35,18 @@ const Player = () => {
     if (!audioRef.current || !audioState) return;
     const audio = audioRef.current;
     if (audioState.playing) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
       audio.pause();
     } else {
+      setNow((now) => now + 1);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      intervalRef.current = setInterval(() => {
+        setNow((now) => now + 1);
+      }, 1000);
       audio.play();
     }
     setAudioState({ ...audioState, playing: !audioState.playing });
@@ -177,16 +192,35 @@ const Player = () => {
         ref={audioRef}
         src={playlist[playing - 1].src}
         onLoadedMetadata={onMetaDataLoad}
+        onEnded={() => {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+        }}
       ></audio>
       <div className="audio-content">
-        <p className="surah-name">Surat Al-Fatheh</p>
-        <p className="qari-name">Mishari Elafassi</p>
+        <p className="surah-name">{playlist[playing - 1].name}</p>
+        <p className="qari-name">{playlist[playing - 1].writer}</p>
       </div>
       <div className="progress">
         <div className="timestamp">
           <p>
-            <span className="start-timestamp">00:00 </span>
-            <span className="end-timestamp">/ 00:51</span>
+            <span className="start-timestamp">
+              {audioRef.current
+                ? dayjs
+                    .duration(audioRef.current.currentTime, "s")
+                    .format("mm:ss")
+                : "00:00"}
+            </span>
+            <span className="end-timestamp">
+              {" "}
+              /
+              {audioRef.current
+                ? ` ${dayjs
+                    .duration(audioRef.current.duration, "s")
+                    .format("mm:ss")}`
+                : " 00:00"}
+            </span>
           </p>
         </div>
         <div
