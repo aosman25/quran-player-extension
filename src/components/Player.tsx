@@ -207,19 +207,35 @@ const Player = () => {
           <p>
             <span className="start-timestamp">
               {audioRef.current
-                ? dayjs
-                    .duration(audioRef.current.currentTime, "s")
-                    .format("mm:ss")
+                ? (() => {
+                    const currentTime = dayjs.duration(
+                      audioRef.current.currentTime,
+                      "seconds"
+                    );
+                    const duration = dayjs.duration(
+                      audioRef.current.duration,
+                      "seconds"
+                    );
+                    return duration.hours() > 0
+                      ? currentTime.format("HH:mm:ss")
+                      : currentTime.format("mm:ss");
+                  })()
                 : "00:00"}
             </span>
+            <span> / </span>
             <span className="end-timestamp">
               {" "}
-              /
               {audioRef.current
-                ? ` ${dayjs
-                    .duration(audioRef.current.duration, "s")
-                    .format("mm:ss")}`
-                : " 00:00"}
+                ? (() => {
+                    const duration = dayjs.duration(
+                      audioRef.current.duration,
+                      "seconds"
+                    );
+                    return duration.hours() > 0
+                      ? duration.format("HH:mm:ss")
+                      : duration.format("mm:ss");
+                  })()
+                : "00:00"}
             </span>
           </p>
         </div>

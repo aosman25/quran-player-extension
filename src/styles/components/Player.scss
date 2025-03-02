@@ -34,7 +34,8 @@
         gap: 5px;
         width: 100%;
         .timestamp {
-            min-width: 100px;
+            white-space: nowrap;
+
             .start-timestamp {
                 color: $blue;
             }
