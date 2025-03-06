@@ -5,6 +5,7 @@ import { GlobalStatesContext } from "../types";
 import dayjs from "dayjs";
 import Slider from "@mui/material/Slider";
 import duration from "dayjs/plugin/duration";
+import { Icons } from "./Icons";
 
 dayjs.extend(duration);
 const Player = () => {
@@ -29,7 +30,7 @@ const Player = () => {
   const playBtnTimeout = useRef<number | null>(null);
   const volumePanelTimeout = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
-  const [now, setNow] = useState<number>(0);
+  const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
 
@@ -178,8 +179,8 @@ const Player = () => {
     const pointer = pointerRef.current;
     const container = containerRef.current;
 
-    const timeRemaining = (audioState.duration - audio.currentTime) * 1000;
-    const currentProgress = audio.currentTime / audioState.duration;
+    const timeRemaining = (audio.duration - audio.currentTime) * 1000;
+    const currentProgress = audio.currentTime / audio.duration;
     const containerRect = container.getBoundingClientRect();
     const maxX = containerRect.width;
 
@@ -211,6 +212,8 @@ const Player = () => {
       window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [isDragging, onMouseMove]);
+
+  // Reset the Slider on new Surah
   useEffect(() => {
     if (!pointerRef.current || !progressRef.current) return;
     const pointer = pointerRef.current;
@@ -220,6 +223,8 @@ const Player = () => {
     progress.style.transition = "none";
     pointer.style.transition = "none";
   }, [playing]);
+
+  // Change the volume on slider move
   useEffect(() => {
     if (!audioRef.current) return;
     const audio = audioRef.current;
@@ -256,7 +261,7 @@ const Player = () => {
     <div ref={playerRef} className="player">
       <audio
         ref={audioRef}
-        src={playlist[playing - 1].src}
+        src={playlist[playing].src}
         onLoadedMetadata={onMetaDataLoad}
         onEnded={() => {
           if (
@@ -271,6 +276,7 @@ const Player = () => {
           const audio = audioRef.current;
           const nextBtn = nextBtnRef.current;
           if (loopStateRef.current) {
+            if (!audioState) return;
             audio.currentTime = 0;
             progress.style.width = "0";
             pointer.style.left = `-5px`;
@@ -284,8 +290,8 @@ const Player = () => {
         }}
       ></audio>
       <div className="audio-content">
-        <p className="surah-name">{playlist[playing - 1].name}</p>
-        <p className="qari-name">{playlist[playing - 1].writer}</p>
+        <p className="surah-name">{playlist[playing].name}</p>
+        <p className="qari-name">{playlist[playing].writer}</p>
       </div>
       <div className="progress">
         <div className="timestamp">
@@ -346,41 +352,7 @@ const Player = () => {
           }}
           className="loop-button"
         >
-          {loop ? (
-            <svg
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              height="1em"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"></path>
-              <path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"></path>
-            </svg>
-          ) : (
-            <svg
-              stroke="currentColor"
-              fill="none"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              height="1em"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <desc></desc>
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M4 12v-3c0 -1.336 .873 -2.468 2.08 -2.856m3.92 -.144h10m-3 -3l3 3l-3 3"></path>
-              <path d="M20 12v3a3 3 0 0 1 -.133 .886m-1.99 1.984a3 3 0 0 1 -.877 .13h-13m3 3l-3 -3l3 -3"></path>
-              <path d="M3 3l18 18"></path>
-            </svg>
-          )}
+          {loop ? Icons.loop_btn : Icons.noloop_btn}
         </button>
         <button
           onMouseEnter={() => {
@@ -401,58 +373,11 @@ const Player = () => {
           className="volume-button"
           onClick={() => setAudioVolume(audioVolume !== 0 ? 0 : 60)}
         >
-          {audioVolume == 0 ? (
-            <svg
-              stroke="currentColor"
-              fill="none"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              height="100%"
-              width="100%"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <desc></desc>
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a0.8 .8 0 0 1 1.5 .5v14a0.8 .8 0 0 1 -1.5 .5l-3.5 -4.5"></path>
-              <path d="M16 10l4 4m0 -4l-4 4"></path>
-            </svg>
-          ) : audioVolume <= 50 ? (
-            <svg
-              stroke="currentColor"
-              fill="none"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              height="100%"
-              width="100%"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <desc></desc>
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M15 8a5 5 0 0 1 0 8"></path>
-              <path d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a0.8 .8 0 0 1 1.5 .5v14a0.8 .8 0 0 1 -1.5 .5l-3.5 -4.5"></path>
-            </svg>
-          ) : (
-            <svg
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              height="100%"
-              width="100%"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M15 8a5 5 0 0 1 0 8"></path>
-              <path d="M17.7 5a9 9 0 0 1 0 14"></path>
-              <path d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a0.8 .8 0 0 1 1.5 .5v14a0.8 .8 0 0 1 -1.5 .5l-3.5 -4.5"></path>
-            </svg>
-          )}
+          {audioVolume == 0
+            ? Icons.muted_btn
+            : audioVolume <= 50
+            ? Icons.midvolume_btn
+            : Icons.highvolume_btn}
         </button>
 
         <div
@@ -488,73 +413,34 @@ const Player = () => {
             })}
             valueLabelDisplay="auto"
             value={audioVolume}
-            onChange={(e) => {
-              setAudioVolume(e.target.value);
+            onChange={(_, newVolume) => {
+              setAudioVolume(newVolume as number);
             }}
           />
         </div>
         <button
           onClick={() => {
-            if (playing === 1) {
-              setPlaying(114);
+            if (playing === 0) {
+              setPlaying(playlist.length - 1);
             } else {
               setPlaying(playing - 1);
             }
           }}
           className="prev-button"
         >
-          <svg
-            stroke="currentColor"
-            fill="currentColor"
-            strokeWidth="0"
-            version="1.1"
-            viewBox="0 0 16 16"
-            height="1em"
-            width="1em"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M8 0c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zM8 14.5c-3.59 0-6.5-2.91-6.5-6.5s2.91-6.5 6.5-6.5 6.5 2.91 6.5 6.5-2.91 6.5-6.5 6.5z"></path>
-            <path d="M7 8l4-3v6z"></path>
-            <path d="M5 5h2v6h-2v-6z"></path>
-          </svg>
+          {Icons.prev_btn}
         </button>
         <button
           ref={playBtnRef}
           onClick={handlePlayAudio}
           className="play-button"
         >
-          {audioState?.playing ? (
-            <svg
-              stroke="currentColor"
-              fill="currentColor"
-              stroke-width="0"
-              viewBox="0 0 24 24"
-              height="1em"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path fill="none" d="M0 0h24v24H0z"></path>
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"></path>
-            </svg>
-          ) : (
-            <svg
-              stroke="currentColor"
-              fill="currentColor"
-              strokeWidth="0"
-              viewBox="0 0 24 24"
-              height="1em"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path fill="none" d="M0 0h24v24H0z"></path>
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"></path>
-            </svg>
-          )}
+          {audioState?.playing ? Icons.pause_btn : Icons.play_btn}
         </button>
         <button
           onClick={() => {
-            if (playing === 114) {
-              setPlaying(1);
+            if (playing === playlist.length - 1) {
+              setPlaying(0);
             } else {
               setPlaying(playing + 1);
             }
@@ -562,20 +448,7 @@ const Player = () => {
           ref={nextBtnRef}
           className="next-button"
         >
-          <svg
-            stroke="currentColor"
-            fill="currentColor"
-            strokeWidth="0"
-            version="1.1"
-            viewBox="0 0 16 16"
-            height="1em"
-            width="1em"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M8 0c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zM8 14.5c3.59 0 6.5-2.91 6.5-6.5s-2.91-6.5-6.5-6.5-6.5 2.91-6.5 6.5 2.91 6.5 6.5 6.5z"></path>
-            <path d="M9 8l-4-3v6z"></path>
-            <path d="M11 5h-2v6h2v-6z"></path>
-          </svg>
+          {Icons.next_btn}
         </button>
       </div>
     </div>

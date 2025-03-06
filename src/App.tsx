@@ -11,7 +11,7 @@ import { useMemo } from "react";
 
 function App() {
   const [qari, setQari] = useState<number>(5); // Default Mishari Alafasi
-  const [playing, setPlaying] = useState<number>(1);
+  const [playing, setPlaying] = useState<number>(0);
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
     for (const [id, surah] of Object.entries(surahs)) {
