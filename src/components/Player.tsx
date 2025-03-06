@@ -226,6 +226,32 @@ const Player = () => {
     audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
   }, [audioVolume]);
+
+  // Handle Pointer Reposition on Window Resize
+  useEffect(() => {
+    const handleWindowResize = () => {
+      if (!containerRef.current || !audioRef.current || !pointerRef.current)
+        return;
+      const container = containerRef.current;
+      const audio = audioRef.current;
+      const pointer = pointerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const maxX = containerRect.width;
+      const currentProgress = audio.currentTime / audio.duration;
+      const timeRemaining = (audio.duration - audio.currentTime) * 1000;
+      pointer.style.left = `${maxX * currentProgress - 5}px`;
+      pointer.style.transition = "opacity 300ms ease-out";
+      if (!audio.paused) {
+        setTimeout(() => {
+          pointer.style.left = `${maxX - 5}px`;
+          pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+        }, 1);
+      }
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
   return (
     <div ref={playerRef} className="player">
       <audio
