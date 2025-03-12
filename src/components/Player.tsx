@@ -215,13 +215,23 @@ const Player = () => {
 
   // Reset the Slider on new Surah
   useEffect(() => {
-    if (!pointerRef.current || !progressRef.current) return;
+    if (
+      !pointerRef.current ||
+      !progressRef.current ||
+      !audioState ||
+      !playBtnRef.current
+    )
+      return;
     const pointer = pointerRef.current;
     const progress = progressRef.current;
+    const playBtn = playBtnRef.current;
     progress.style.width = "0";
     pointer.style.left = `-5px`;
     progress.style.transition = "none";
     pointer.style.transition = "none";
+    if (!audioState.playing) {
+      playBtn.click();
+    }
   }, [playing]);
 
   // Change the volume on slider move
