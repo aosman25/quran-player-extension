@@ -10,7 +10,9 @@ export interface GlobalStatesContext {
     lang: string,
     setLang: React.Dispatch<React.SetStateAction<"en" | "ar">>,
     moshaf: number,
-    setMoshaf: React.Dispatch<React.SetStateAction<number>>
+    setMoshaf: React.Dispatch<React.SetStateAction<number>>,
+    loved: boolean,
+    setLoved: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export interface Play {
@@ -35,7 +37,7 @@ interface moshaf{
   surah_list: number[]
 }
 
-interface lang {
+export interface lang {
   ar: string,
   en: string
 }
@@ -49,6 +51,14 @@ export interface SurahData {
   end_page: number,
   makkia: number,
   type: number
+}
+
+export interface MoshafsType {
+  [key: string | number]: {
+    [key: string]: {
+      "name": lang
+    }
+  }
 }
 
 export interface rawSurahData {

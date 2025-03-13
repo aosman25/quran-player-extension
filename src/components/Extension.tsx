@@ -3,11 +3,13 @@ import Surah from "./Surah";
 import { GlobalStatesContext } from "../types";
 import { useContext } from "react";
 import { GlobalStates } from "../GlobalStates";
+import Header from "./Header";
 
 const Extension = () => {
   const { surahsList } = useContext<GlobalStatesContext>(GlobalStates);
   return (
     <div>
+      <Header />
       {surahsList.map(
         ({ id, name, start_page, end_page, makkia, type }, index) => {
           return (

@@ -18,6 +18,7 @@
     "mui": "^0.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
     "react-modern-audio-player": "^1.4.0-rc.2",
     "sass": "^1.83.4"
   },
