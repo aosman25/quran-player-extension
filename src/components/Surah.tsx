@@ -4,8 +4,8 @@ import { useContext } from "react";
 import { GlobalStates } from "../GlobalStates";
 import { GlobalStatesContext } from "../types";
 const Surah = ({ id, name }: SurahData) => {
-  const { playing, playlist } = useContext<GlobalStatesContext>(GlobalStates);
-  const { englishName, literalName } = name;
+  const { playing, playlist, lang } =
+    useContext<GlobalStatesContext>(GlobalStates);
   const { setPlaying } = useContext<GlobalStatesContext>(GlobalStates);
   const onClick = () => {
     setPlaying(playlist.findIndex(({ id: surahId }) => surahId == id));
@@ -22,10 +22,8 @@ const Surah = ({ id, name }: SurahData) => {
         className="surah-box"
       >
         <div>{id}</div>
-        <div>{literalName}</div>
-        <div>
-          <i>{englishName}</i>
-        </div>
+        <div>{name[lang as keyof typeof name]}</div>
+        <div></div>
       </div>
       <hr />
     </>

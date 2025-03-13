@@ -6,7 +6,11 @@ export interface GlobalStatesContext {
     setPlaying: React.Dispatch<React.SetStateAction<number>>,
     qari: number,
     setQari: React.Dispatch<React.SetStateAction<number>>,
-    surahsList: SurahData[]
+    surahsList: SurahData[],
+    lang: string,
+    setLang: React.Dispatch<React.SetStateAction<"en" | "ar">>,
+    moshaf: number,
+    setMoshaf: React.Dispatch<React.SetStateAction<number>>
 }
 
 export interface Play {
@@ -18,24 +22,34 @@ export interface Play {
 
 export interface rawReciterData {
     id: number,
-    name: string,
-    arabicName: string,
-    relativePath: string,
-    fileFormats: string,
-    sectionId: number,
-    home: boolean,
-    description: null,
-    torrentFilename: string
-    torrentInfoHash: string,
-    torrentSeeders: number,
-    torrentLeechers: number,
-    letter: string
+    name: lang,
+    letter: lang,
+    date: string,
+    moshaf: moshaf[]
+  }
+interface moshaf{
+  moshaf_id: number,
+  moshaf_type: number,
+  surah_total: number,
+  server: string,
+  surah_list: number[]
 }
 
+interface lang {
+  ar: string,
+  en: string
+}
 export interface SurahData {
-    id: number;
-    name: string
-  }
+  id: number,
+  name: {
+      ar: string,
+      en: string
+  },
+  start_page: number,
+  end_page: number,
+  makkia: number,
+  type: number
+}
 
 export interface rawSurahData {
         "id": number,

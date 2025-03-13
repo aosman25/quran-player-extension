@@ -4,31 +4,27 @@ import Extension from "./components/Extension";
 import { GlobalStates } from "./GlobalStates";
 import { useCallback, useState } from "react";
 import { Play, rawReciterData } from "./types";
-import recitersList from "./data/reciters.json";
-import surahs from "./data/surahs.json";
+import surahs from "./data/quranmp3/surahs.json";
+import recitersList from "./data/quranmp3/reciters.json";
 import { SurahData } from "./types";
 import { useMemo } from "react";
 
 function App() {
-  const [qari, setQari] = useState<number>(5); // Default Mishari Alafasi
+  const [qari, setQari] = useState<number>(123); // Default Mishari Alafasi
   const [moshaf, setMoshaf] = useState<number>(1); // Default Moshaf
   const [lang, setLang] = useState<"en" | "ar">("en");
   const [playing, setPlaying] = useState<number>(0);
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
-    for (const [id, surah] of Object.entries(surahs)) {
-      const { simple, english, arabic } = surah.name;
-      surahsList.push({
-        id: Number(id),
-        name: {
-          englishName: english,
-          literalName: simple,
-          arabicName: arabic,
-        },
-      });
+    const availableSurahs =
+      recitersList[String(qari) as keyof typeof recitersList]["moshaf"][moshaf][
+        "surah_list"
+      ];
+    for (const surah of availableSurahs) {
+      surahsList.push(surahs[String(surah) as keyof typeof surahs]);
     }
     return surahsList;
-  }, []);
+  }, [moshaf, qari]);
   const surahsList: SurahData[] = useMemo(genrateSurahs, [genrateSurahs]);
   const generatePlaylist = useCallback(
     (qari: number): Play[] => {
@@ -37,18 +33,17 @@ function App() {
         String(qari) as keyof typeof recitersList
       ] as rawReciterData;
 
-      surahsList.forEach(({ id, name }) => {
+      surahsList.forEach(({ id }) => {
         const prefix = "000";
-        const baseURL = "https://download.quranicaudio.com/quran/";
-        const fileFormat = "." + reciter.fileFormats;
-        const relativePath = reciter.relativePath;
+        const baseURL = reciter["moshaf"][moshaf]["server"];
+        const fileFormat = ".mp3";
+
         playlist.push({
           id,
-          name: name.literalName,
-          writer: reciter.name,
+          name: surahs[String(id) as keyof typeof surahs]["name"][lang],
+          writer: reciter.name[lang],
           src:
             baseURL +
-            relativePath +
             prefix.slice(0, prefix.length - String(id).length) +
             String(id) +
             fileFormat,
@@ -56,7 +51,7 @@ function App() {
       });
       return playlist;
     },
-    [surahsList]
+    [surahsList, lang, moshaf]
   );
   const [playlist, setPlaylist] = useState<Play[]>(generatePlaylist(qari));
   return (
@@ -69,6 +64,10 @@ function App() {
         qari,
         setQari,
         surahsList,
+        lang,
+        setLang,
+        moshaf,
+        setMoshaf,
       }}
     >
       <Extension />
