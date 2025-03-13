@@ -34,11 +34,7 @@ export interface rawReciterData {
 
 export interface SurahData {
     id: number;
-    name: {
-      arabicName: string;
-      englishName: string;
-      literalName: string;
-    };
+    name: string
   }
 
 export interface rawSurahData {

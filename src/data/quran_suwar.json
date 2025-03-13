@@ -1,0 +1,1256 @@
+{
+    "1": {
+        "id": 1,
+        "name": {
+            "ar": "الفاتحة",
+            "en": "Al-Fatihah"
+        },
+        "start_page": 1,
+        "end_page": 1,
+        "makkia": 1,
+        "type": 0
+    },
+    "2": {
+        "id": 2,
+        "name": {
+            "ar": "البقرة",
+            "en": "Al-Baqarah"
+        },
+        "start_page": 2,
+        "end_page": 49,
+        "makkia": 0,
+        "type": 1
+    },
+    "3": {
+        "id": 3,
+        "name": {
+            "ar": "آل عمران",
+            "en": "Al-Imran"
+        },
+        "start_page": 50,
+        "end_page": 76,
+        "makkia": 0,
+        "type": 1
+    },
+    "4": {
+        "id": 4,
+        "name": {
+            "ar": "النساء",
+            "en": "An-Nisa'"
+        },
+        "start_page": 77,
+        "end_page": 106,
+        "makkia": 0,
+        "type": 1
+    },
+    "5": {
+        "id": 5,
+        "name": {
+            "ar": "المائدة",
+            "en": "Al-Ma'idah"
+        },
+        "start_page": 106,
+        "end_page": 127,
+        "makkia": 0,
+        "type": 1
+    },
+    "6": {
+        "id": 6,
+        "name": {
+            "ar": "الأنعام",
+            "en": "Al-An'am"
+        },
+        "start_page": 128,
+        "end_page": 150,
+        "makkia": 1,
+        "type": 0
+    },
+    "7": {
+        "id": 7,
+        "name": {
+            "ar": "الأعراف",
+            "en": "Al-A'raf"
+        },
+        "start_page": 151,
+        "end_page": 176,
+        "makkia": 1,
+        "type": 0
+    },
+    "8": {
+        "id": 8,
+        "name": {
+            "ar": "الأنفال",
+            "en": "Al-Anfal"
+        },
+        "start_page": 177,
+        "end_page": 186,
+        "makkia": 0,
+        "type": 1
+    },
+    "9": {
+        "id": 9,
+        "name": {
+            "ar": "التوبة",
+            "en": "At-Taubah"
+        },
+        "start_page": 187,
+        "end_page": 207,
+        "makkia": 0,
+        "type": 1
+    },
+    "10": {
+        "id": 10,
+        "name": {
+            "ar": "يونس",
+            "en": "Yunus"
+        },
+        "start_page": 208,
+        "end_page": 221,
+        "makkia": 1,
+        "type": 0
+    },
+    "11": {
+        "id": 11,
+        "name": {
+            "ar": "هود",
+            "en": "Hood"
+        },
+        "start_page": 221,
+        "end_page": 235,
+        "makkia": 1,
+        "type": 0
+    },
+    "12": {
+        "id": 12,
+        "name": {
+            "ar": "يوسف",
+            "en": "Yusuf"
+        },
+        "start_page": 235,
+        "end_page": 248,
+        "makkia": 1,
+        "type": 0
+    },
+    "13": {
+        "id": 13,
+        "name": {
+            "ar": "الرعد",
+            "en": "Ar-Ra'd"
+        },
+        "start_page": 249,
+        "end_page": 255,
+        "makkia": 0,
+        "type": 1
+    },
+    "14": {
+        "id": 14,
+        "name": {
+            "ar": "إبراهيم",
+            "en": "Ibrahim"
+        },
+        "start_page": 255,
+        "end_page": 261,
+        "makkia": 1,
+        "type": 0
+    },
+    "15": {
+        "id": 15,
+        "name": {
+            "ar": "الحجر",
+            "en": "Al-Hijr"
+        },
+        "start_page": 262,
+        "end_page": 267,
+        "makkia": 1,
+        "type": 0
+    },
+    "16": {
+        "id": 16,
+        "name": {
+            "ar": "النحل",
+            "en": "An-Nahl"
+        },
+        "start_page": 267,
+        "end_page": 281,
+        "makkia": 1,
+        "type": 0
+    },
+    "17": {
+        "id": 17,
+        "name": {
+            "ar": "الإسراء",
+            "en": "Al-Isra"
+        },
+        "start_page": 282,
+        "end_page": 293,
+        "makkia": 1,
+        "type": 0
+    },
+    "18": {
+        "id": 18,
+        "name": {
+            "ar": "الكهف",
+            "en": "Al-Kahf"
+        },
+        "start_page": 293,
+        "end_page": 304,
+        "makkia": 1,
+        "type": 0
+    },
+    "19": {
+        "id": 19,
+        "name": {
+            "ar": "مريم",
+            "en": "Maryam"
+        },
+        "start_page": 305,
+        "end_page": 312,
+        "makkia": 1,
+        "type": 0
+    },
+    "20": {
+        "id": 20,
+        "name": {
+            "ar": "طه",
+            "en": "Ta­Ha"
+        },
+        "start_page": 312,
+        "end_page": 321,
+        "makkia": 1,
+        "type": 0
+    },
+    "21": {
+        "id": 21,
+        "name": {
+            "ar": "الأنبياء",
+            "en": "Al-Anbiya'"
+        },
+        "start_page": 322,
+        "end_page": 331,
+        "makkia": 1,
+        "type": 0
+    },
+    "22": {
+        "id": 22,
+        "name": {
+            "ar": "الحج",
+            "en": "Al-Hajj"
+        },
+        "start_page": 332,
+        "end_page": 341,
+        "makkia": 0,
+        "type": 1
+    },
+    "23": {
+        "id": 23,
+        "name": {
+            "ar": "المؤمنون",
+            "en": "Al-Mu'minun"
+        },
+        "start_page": 342,
+        "end_page": 349,
+        "makkia": 1,
+        "type": 0
+    },
+    "24": {
+        "id": 24,
+        "name": {
+            "ar": "النور",
+            "en": "An-Nur"
+        },
+        "start_page": 350,
+        "end_page": 359,
+        "makkia": 0,
+        "type": 1
+    },
+    "25": {
+        "id": 25,
+        "name": {
+            "ar": "الفرقان",
+            "en": "Al-Furqan"
+        },
+        "start_page": 359,
+        "end_page": 366,
+        "makkia": 1,
+        "type": 0
+    },
+    "26": {
+        "id": 26,
+        "name": {
+            "ar": "الشعراء",
+            "en": "Ash-Shu'ara'"
+        },
+        "start_page": 367,
+        "end_page": 376,
+        "makkia": 1,
+        "type": 0
+    },
+    "27": {
+        "id": 27,
+        "name": {
+            "ar": "النمل",
+            "en": "An-Naml"
+        },
+        "start_page": 377,
+        "end_page": 385,
+        "makkia": 1,
+        "type": 0
+    },
+    "28": {
+        "id": 28,
+        "name": {
+            "ar": "القصص",
+            "en": "Al-Qasas"
+        },
+        "start_page": 385,
+        "end_page": 396,
+        "makkia": 1,
+        "type": 0
+    },
+    "29": {
+        "id": 29,
+        "name": {
+            "ar": "العنكبوت",
+            "en": "Al-'Ankabut"
+        },
+        "start_page": 396,
+        "end_page": 404,
+        "makkia": 1,
+        "type": 0
+    },
+    "30": {
+        "id": 30,
+        "name": {
+            "ar": "الروم",
+            "en": "Ar­Room"
+        },
+        "start_page": 404,
+        "end_page": 410,
+        "makkia": 1,
+        "type": 0
+    },
+    "31": {
+        "id": 31,
+        "name": {
+            "ar": "لقمان",
+            "en": "Luqman"
+        },
+        "start_page": 411,
+        "end_page": 414,
+        "makkia": 1,
+        "type": 0
+    },
+    "32": {
+        "id": 32,
+        "name": {
+            "ar": "السجدة",
+            "en": "As­Sajdah"
+        },
+        "start_page": 415,
+        "end_page": 417,
+        "makkia": 1,
+        "type": 0
+    },
+    "33": {
+        "id": 33,
+        "name": {
+            "ar": "الأحزاب",
+            "en": "Al­Ahzab"
+        },
+        "start_page": 418,
+        "end_page": 427,
+        "makkia": 0,
+        "type": 1
+    },
+    "34": {
+        "id": 34,
+        "name": {
+            "ar": "سبأ",
+            "en": "Saba'"
+        },
+        "start_page": 428,
+        "end_page": 434,
+        "makkia": 1,
+        "type": 0
+    },
+    "35": {
+        "id": 35,
+        "name": {
+            "ar": "فاطر",
+            "en": "Fatir"
+        },
+        "start_page": 434,
+        "end_page": 440,
+        "makkia": 1,
+        "type": 0
+    },
+    "36": {
+        "id": 36,
+        "name": {
+            "ar": "يس",
+            "en": "Ya­Sin"
+        },
+        "start_page": 440,
+        "end_page": 445,
+        "makkia": 1,
+        "type": 0
+    },
+    "37": {
+        "id": 37,
+        "name": {
+            "ar": "الصافات",
+            "en": "As-Saffat"
+        },
+        "start_page": 446,
+        "end_page": 452,
+        "makkia": 1,
+        "type": 0
+    },
+    "38": {
+        "id": 38,
+        "name": {
+            "ar": "ص",
+            "en": "Sad"
+        },
+        "start_page": 453,
+        "end_page": 458,
+        "makkia": 1,
+        "type": 0
+    },
+    "39": {
+        "id": 39,
+        "name": {
+            "ar": "الزمر",
+            "en": "Az-Zumar"
+        },
+        "start_page": 458,
+        "end_page": 467,
+        "makkia": 1,
+        "type": 0
+    },
+    "40": {
+        "id": 40,
+        "name": {
+            "ar": "غافر",
+            "en": "Ghafir"
+        },
+        "start_page": 467,
+        "end_page": 476,
+        "makkia": 1,
+        "type": 0
+    },
+    "41": {
+        "id": 41,
+        "name": {
+            "ar": "فصلت",
+            "en": "Fussilat"
+        },
+        "start_page": 477,
+        "end_page": 482,
+        "makkia": 1,
+        "type": 0
+    },
+    "42": {
+        "id": 42,
+        "name": {
+            "ar": "الشورى",
+            "en": "Ash-Shura"
+        },
+        "start_page": 483,
+        "end_page": 489,
+        "makkia": 1,
+        "type": 0
+    },
+    "43": {
+        "id": 43,
+        "name": {
+            "ar": "الزخرف",
+            "en": "Az-Zukhruf"
+        },
+        "start_page": 489,
+        "end_page": 495,
+        "makkia": 1,
+        "type": 0
+    },
+    "44": {
+        "id": 44,
+        "name": {
+            "ar": "الدّخان",
+            "en": "Ad-Dukhan"
+        },
+        "start_page": 496,
+        "end_page": 498,
+        "makkia": 1,
+        "type": 0
+    },
+    "45": {
+        "id": 45,
+        "name": {
+            "ar": "الجاثية",
+            "en": "Al-Jathiya"
+        },
+        "start_page": 499,
+        "end_page": 502,
+        "makkia": 1,
+        "type": 0
+    },
+    "46": {
+        "id": 46,
+        "name": {
+            "ar": "الأحقاف",
+            "en": "Al-Ahqaf"
+        },
+        "start_page": 502,
+        "end_page": 506,
+        "makkia": 1,
+        "type": 0
+    },
+    "47": {
+        "id": 47,
+        "name": {
+            "ar": "محمد",
+            "en": "Muhammad"
+        },
+        "start_page": 507,
+        "end_page": 510,
+        "makkia": 0,
+        "type": 1
+    },
+    "48": {
+        "id": 48,
+        "name": {
+            "ar": "الفتح",
+            "en": "Al-Fath"
+        },
+        "start_page": 511,
+        "end_page": 515,
+        "makkia": 0,
+        "type": 1
+    },
+    "49": {
+        "id": 49,
+        "name": {
+            "ar": "الحجرات",
+            "en": "Al-Hujurat"
+        },
+        "start_page": 515,
+        "end_page": 517,
+        "makkia": 0,
+        "type": 1
+    },
+    "50": {
+        "id": 50,
+        "name": {
+            "ar": "ق",
+            "en": "Qaf"
+        },
+        "start_page": 518,
+        "end_page": 520,
+        "makkia": 1,
+        "type": 0
+    },
+    "51": {
+        "id": 51,
+        "name": {
+            "ar": "الذاريات",
+            "en": "Az-Zariyat"
+        },
+        "start_page": 520,
+        "end_page": 523,
+        "makkia": 1,
+        "type": 0
+    },
+    "52": {
+        "id": 52,
+        "name": {
+            "ar": "الطور",
+            "en": "At-Tur"
+        },
+        "start_page": 523,
+        "end_page": 525,
+        "makkia": 1,
+        "type": 0
+    },
+    "53": {
+        "id": 53,
+        "name": {
+            "ar": "النجم",
+            "en": "An-Najm"
+        },
+        "start_page": 526,
+        "end_page": 528,
+        "makkia": 1,
+        "type": 0
+    },
+    "54": {
+        "id": 54,
+        "name": {
+            "ar": "القمر",
+            "en": "Al-Qamar"
+        },
+        "start_page": 528,
+        "end_page": 531,
+        "makkia": 1,
+        "type": 0
+    },
+    "55": {
+        "id": 55,
+        "name": {
+            "ar": "الرحمن",
+            "en": "Ar-Rahman"
+        },
+        "start_page": 531,
+        "end_page": 534,
+        "makkia": 0,
+        "type": 1
+    },
+    "56": {
+        "id": 56,
+        "name": {
+            "ar": "الواقعة",
+            "en": "Al-Waqi'ah"
+        },
+        "start_page": 534,
+        "end_page": 537,
+        "makkia": 1,
+        "type": 0
+    },
+    "57": {
+        "id": 57,
+        "name": {
+            "ar": "الحديد",
+            "en": "Al-Hadid"
+        },
+        "start_page": 537,
+        "end_page": 541,
+        "makkia": 0,
+        "type": 1
+    },
+    "58": {
+        "id": 58,
+        "name": {
+            "ar": "المجادلة",
+            "en": "Al-Mujadilah"
+        },
+        "start_page": 542,
+        "end_page": 545,
+        "makkia": 0,
+        "type": 1
+    },
+    "59": {
+        "id": 59,
+        "name": {
+            "ar": "الحشر",
+            "en": "Al-Hashr"
+        },
+        "start_page": 545,
+        "end_page": 548,
+        "makkia": 0,
+        "type": 1
+    },
+    "60": {
+        "id": 60,
+        "name": {
+            "ar": "الممتحنة",
+            "en": "Al-Mumtahinah"
+        },
+        "start_page": 549,
+        "end_page": 551,
+        "makkia": 0,
+        "type": 1
+    },
+    "61": {
+        "id": 61,
+        "name": {
+            "ar": "الصف",
+            "en": "As-Saff"
+        },
+        "start_page": 551,
+        "end_page": 552,
+        "makkia": 0,
+        "type": 1
+    },
+    "62": {
+        "id": 62,
+        "name": {
+            "ar": "الجمعة",
+            "en": "Al-Jumu'ah"
+        },
+        "start_page": 553,
+        "end_page": 554,
+        "makkia": 0,
+        "type": 1
+    },
+    "63": {
+        "id": 63,
+        "name": {
+            "ar": "المنافقون",
+            "en": "Al-Munafiqun"
+        },
+        "start_page": 554,
+        "end_page": 555,
+        "makkia": 0,
+        "type": 1
+    },
+    "64": {
+        "id": 64,
+        "name": {
+            "ar": "التغابن",
+            "en": "At-Taghabun"
+        },
+        "start_page": 556,
+        "end_page": 557,
+        "makkia": 0,
+        "type": 1
+    },
+    "65": {
+        "id": 65,
+        "name": {
+            "ar": "الطلاق",
+            "en": "At-Talaq"
+        },
+        "start_page": 558,
+        "end_page": 559,
+        "makkia": 0,
+        "type": 1
+    },
+    "66": {
+        "id": 66,
+        "name": {
+            "ar": "التحريم",
+            "en": "At-Tahrim"
+        },
+        "start_page": 560,
+        "end_page": 561,
+        "makkia": 0,
+        "type": 1
+    },
+    "67": {
+        "id": 67,
+        "name": {
+            "ar": "الملك",
+            "en": "Al-Mulk"
+        },
+        "start_page": 562,
+        "end_page": 564,
+        "makkia": 1,
+        "type": 0
+    },
+    "68": {
+        "id": 68,
+        "name": {
+            "ar": "القلم",
+            "en": "Al-Qalam"
+        },
+        "start_page": 564,
+        "end_page": 566,
+        "makkia": 1,
+        "type": 0
+    },
+    "69": {
+        "id": 69,
+        "name": {
+            "ar": "الحاقة",
+            "en": "Al-Haqqah"
+        },
+        "start_page": 566,
+        "end_page": 568,
+        "makkia": 1,
+        "type": 0
+    },
+    "70": {
+        "id": 70,
+        "name": {
+            "ar": "المعارج",
+            "en": "Al-Ma'arij"
+        },
+        "start_page": 568,
+        "end_page": 570,
+        "makkia": 1,
+        "type": 0
+    },
+    "71": {
+        "id": 71,
+        "name": {
+            "ar": "نوح",
+            "en": "Nooh"
+        },
+        "start_page": 570,
+        "end_page": 571,
+        "makkia": 1,
+        "type": 0
+    },
+    "72": {
+        "id": 72,
+        "name": {
+            "ar": "الجن",
+            "en": "Al-Jinn"
+        },
+        "start_page": 572,
+        "end_page": 573,
+        "makkia": 1,
+        "type": 0
+    },
+    "73": {
+        "id": 73,
+        "name": {
+            "ar": "المزمل",
+            "en": "Al-Muzzammil"
+        },
+        "start_page": 574,
+        "end_page": 575,
+        "makkia": 1,
+        "type": 0
+    },
+    "74": {
+        "id": 74,
+        "name": {
+            "ar": "المدثر",
+            "en": "Al-Muddaththir"
+        },
+        "start_page": 575,
+        "end_page": 577,
+        "makkia": 1,
+        "type": 0
+    },
+    "75": {
+        "id": 75,
+        "name": {
+            "ar": "القيامة",
+            "en": "Al-Qiyamah"
+        },
+        "start_page": 577,
+        "end_page": 578,
+        "makkia": 1,
+        "type": 0
+    },
+    "76": {
+        "id": 76,
+        "name": {
+            "ar": "الإنسان",
+            "en": "Al-Insan"
+        },
+        "start_page": 578,
+        "end_page": 580,
+        "makkia": 0,
+        "type": 1
+    },
+    "77": {
+        "id": 77,
+        "name": {
+            "ar": "المرسلات",
+            "en": "Al-Mursalat"
+        },
+        "start_page": 580,
+        "end_page": 581,
+        "makkia": 1,
+        "type": 0
+    },
+    "78": {
+        "id": 78,
+        "name": {
+            "ar": "النبأ",
+            "en": "An-Naba'"
+        },
+        "start_page": 582,
+        "end_page": 583,
+        "makkia": 1,
+        "type": 0
+    },
+    "79": {
+        "id": 79,
+        "name": {
+            "ar": "النازعات",
+            "en": "An-Nazi'at"
+        },
+        "start_page": 583,
+        "end_page": 584,
+        "makkia": 1,
+        "type": 0
+    },
+    "80": {
+        "id": 80,
+        "name": {
+            "ar": "عبس",
+            "en": "Abasa"
+        },
+        "start_page": 585,
+        "end_page": 586,
+        "makkia": 1,
+        "type": 0
+    },
+    "81": {
+        "id": 81,
+        "name": {
+            "ar": "التكوير",
+            "en": "At-Takwir"
+        },
+        "start_page": 586,
+        "end_page": 586,
+        "makkia": 1,
+        "type": 0
+    },
+    "82": {
+        "id": 82,
+        "name": {
+            "ar": "الإنفطار",
+            "en": "Al-Infitar"
+        },
+        "start_page": 587,
+        "end_page": 587,
+        "makkia": 1,
+        "type": 0
+    },
+    "83": {
+        "id": 83,
+        "name": {
+            "ar": "المطففين",
+            "en": "Al-Mutaffifin"
+        },
+        "start_page": 587,
+        "end_page": 589,
+        "makkia": 1,
+        "type": 0
+    },
+    "84": {
+        "id": 84,
+        "name": {
+            "ar": "الإنشقاق",
+            "en": "Al-Inshiqaq"
+        },
+        "start_page": 589,
+        "end_page": 590,
+        "makkia": 1,
+        "type": 0
+    },
+    "85": {
+        "id": 85,
+        "name": {
+            "ar": "البروج",
+            "en": "Al-Buruj"
+        },
+        "start_page": 590,
+        "end_page": 590,
+        "makkia": 1,
+        "type": 0
+    },
+    "86": {
+        "id": 86,
+        "name": {
+            "ar": "الطارق",
+            "en": "At-Tariq"
+        },
+        "start_page": 591,
+        "end_page": 591,
+        "makkia": 1,
+        "type": 0
+    },
+    "87": {
+        "id": 87,
+        "name": {
+            "ar": "الأعلى",
+            "en": "Al-A'la"
+        },
+        "start_page": 591,
+        "end_page": 592,
+        "makkia": 1,
+        "type": 0
+    },
+    "88": {
+        "id": 88,
+        "name": {
+            "ar": "الغاشية",
+            "en": "Al-Ghashiyah"
+        },
+        "start_page": 592,
+        "end_page": 593,
+        "makkia": 1,
+        "type": 0
+    },
+    "89": {
+        "id": 89,
+        "name": {
+            "ar": "الفجر",
+            "en": "Al-Fajr"
+        },
+        "start_page": 593,
+        "end_page": 594,
+        "makkia": 1,
+        "type": 0
+    },
+    "90": {
+        "id": 90,
+        "name": {
+            "ar": "البلد",
+            "en": "Al-Balad"
+        },
+        "start_page": 594,
+        "end_page": 595,
+        "makkia": 1,
+        "type": 0
+    },
+    "91": {
+        "id": 91,
+        "name": {
+            "ar": "الشمس",
+            "en": "Ash-Shams"
+        },
+        "start_page": 595,
+        "end_page": 595,
+        "makkia": 1,
+        "type": 0
+    },
+    "92": {
+        "id": 92,
+        "name": {
+            "ar": "الليل",
+            "en": "Al-Lail"
+        },
+        "start_page": 595,
+        "end_page": 596,
+        "makkia": 1,
+        "type": 0
+    },
+    "93": {
+        "id": 93,
+        "name": {
+            "ar": "الضحى",
+            "en": "Ad-Duha"
+        },
+        "start_page": 596,
+        "end_page": 596,
+        "makkia": 1,
+        "type": 0
+    },
+    "94": {
+        "id": 94,
+        "name": {
+            "ar": "الشرح",
+            "en": "Ash-Sharh"
+        },
+        "start_page": 596,
+        "end_page": 597,
+        "makkia": 1,
+        "type": 0
+    },
+    "95": {
+        "id": 95,
+        "name": {
+            "ar": "التين",
+            "en": "At-Tin"
+        },
+        "start_page": 597,
+        "end_page": 597,
+        "makkia": 1,
+        "type": 0
+    },
+    "96": {
+        "id": 96,
+        "name": {
+            "ar": "العلق",
+            "en": "Al-'Alaq"
+        },
+        "start_page": 597,
+        "end_page": 598,
+        "makkia": 1,
+        "type": 0
+    },
+    "97": {
+        "id": 97,
+        "name": {
+            "ar": "القدر",
+            "en": "Al-Qadr"
+        },
+        "start_page": 598,
+        "end_page": 598,
+        "makkia": 1,
+        "type": 0
+    },
+    "98": {
+        "id": 98,
+        "name": {
+            "ar": "البينة",
+            "en": "Al-Baiyinah"
+        },
+        "start_page": 598,
+        "end_page": 599,
+        "makkia": 0,
+        "type": 1
+    },
+    "99": {
+        "id": 99,
+        "name": {
+            "ar": "الزلزلة",
+            "en": "Az-Zalzalah"
+        },
+        "start_page": 599,
+        "end_page": 599,
+        "makkia": 0,
+        "type": 1
+    },
+    "100": {
+        "id": 100,
+        "name": {
+            "ar": "العاديات",
+            "en": "Al-'Adiyat"
+        },
+        "start_page": 599,
+        "end_page": 600,
+        "makkia": 1,
+        "type": 0
+    },
+    "101": {
+        "id": 101,
+        "name": {
+            "ar": "القارعة",
+            "en": "Al-Qari'ah"
+        },
+        "start_page": 600,
+        "end_page": 600,
+        "makkia": 1,
+        "type": 0
+    },
+    "102": {
+        "id": 102,
+        "name": {
+            "ar": "التكاثر",
+            "en": "At-Takathur"
+        },
+        "start_page": 600,
+        "end_page": 600,
+        "makkia": 1,
+        "type": 0
+    },
+    "103": {
+        "id": 103,
+        "name": {
+            "ar": "العصر",
+            "en": "Al-'Asr"
+        },
+        "start_page": 601,
+        "end_page": 601,
+        "makkia": 1,
+        "type": 0
+    },
+    "104": {
+        "id": 104,
+        "name": {
+            "ar": "الهمزة",
+            "en": "Al-Humazah"
+        },
+        "start_page": 601,
+        "end_page": 601,
+        "makkia": 1,
+        "type": 0
+    },
+    "105": {
+        "id": 105,
+        "name": {
+            "ar": "الفيل",
+            "en": "Al-Fil"
+        },
+        "start_page": 601,
+        "end_page": 601,
+        "makkia": 1,
+        "type": 0
+    },
+    "106": {
+        "id": 106,
+        "name": {
+            "ar": "قريش",
+            "en": "Quraish"
+        },
+        "start_page": 602,
+        "end_page": 602,
+        "makkia": 1,
+        "type": 0
+    },
+    "107": {
+        "id": 107,
+        "name": {
+            "ar": "الماعون",
+            "en": "Al-Ma'un"
+        },
+        "start_page": 602,
+        "end_page": 602,
+        "makkia": 1,
+        "type": 0
+    },
+    "108": {
+        "id": 108,
+        "name": {
+            "ar": "الكوثر",
+            "en": "Al-Kauthar"
+        },
+        "start_page": 602,
+        "end_page": 602,
+        "makkia": 1,
+        "type": 0
+    },
+    "109": {
+        "id": 109,
+        "name": {
+            "ar": "الكافرون",
+            "en": "Al-Kafirun"
+        },
+        "start_page": 603,
+        "end_page": 603,
+        "makkia": 1,
+        "type": 0
+    },
+    "110": {
+        "id": 110,
+        "name": {
+            "ar": "النصر",
+            "en": "An-Nasr"
+        },
+        "start_page": 603,
+        "end_page": 603,
+        "makkia": 0,
+        "type": 1
+    },
+    "111": {
+        "id": 111,
+        "name": {
+            "ar": "المسد",
+            "en": "Al-Masad"
+        },
+        "start_page": 603,
+        "end_page": 603,
+        "makkia": 1,
+        "type": 0
+    },
+    "112": {
+        "id": 112,
+        "name": {
+            "ar": "الإخلاص",
+            "en": "Al-Ikhlas"
+        },
+        "start_page": 604,
+        "end_page": 604,
+        "makkia": 1,
+        "type": 0
+    },
+    "113": {
+        "id": 113,
+        "name": {
+            "ar": "الفلق",
+            "en": "Al-Falaq"
+        },
+        "start_page": 604,
+        "end_page": 604,
+        "makkia": 1,
+        "type": 0
+    },
+    "114": {
+        "id": 114,
+        "name": {
+            "ar": "الناس",
+            "en": "An-Nas"
+        },
+        "start_page": 604,
+        "end_page": 604,
+        "makkia": 1,
+        "type": 0
+    }
+}
