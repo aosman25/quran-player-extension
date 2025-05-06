@@ -2,7 +2,7 @@
 
 .header-container {
     width: 100vw;
-    height: 90px;
+    height: 80px;
     position: fixed;
     top: 0;
     left: 0;
@@ -50,7 +50,9 @@
     .filter-container {
         display: flex;
         gap: 5px;
-        
+        div {
+            width: 100%;
+        }
         button{
             .filter-icon {
                 margin-right: 5px;
@@ -78,16 +80,39 @@
     button:active {
         transform: scale(0.9);
     }
-
-
-    &::after {
-        content: "";
-        position: absolute;
-        bottom: -10px; // Adjust based on how much fade you want
-        left: 0;
-        width: 100%;
-        height: 10px; // Height of the fade effect
-        background: linear-gradient(to bottom, rgba($dark-grey, 1), rgba($dark-grey, 0));
-        pointer-events: none; // Ensures it doesn’t interfere with interactions
+    .change-moshaf-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        position: relative;
     }
+    .mohafs-main-container {
+        position: absolute;
+        top: 25px;
+        left: -10px;
+        display: grid;
+        grid-template-columns: 1fr 300px 1fr;
+        transition: opacity 500ms;
+
+    }
+    .mohafs-container {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 10px;
+        background-color: $dark-grey;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+        border-radius: 5px;
+        z-index: 1;
+        button {
+            transform: none;
+        }
+   
+    }
+
 }

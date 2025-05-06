@@ -2,7 +2,7 @@ import "./styles/index.scss";
 import "./components/Extension";
 import Extension from "./components/Extension";
 import { GlobalStates } from "./GlobalStates";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Play, rawReciterData } from "./types";
 import surahs from "./data/quranmp3/surahs.json";
 import recitersList from "./data/quranmp3/reciters.json";
@@ -55,6 +55,9 @@ function App() {
     [surahsList, lang, moshaf]
   );
   const [playlist, setPlaylist] = useState<Play[]>(generatePlaylist(qari));
+  useEffect(() => {
+    setPlaylist(generatePlaylist(qari));
+  }, [moshaf, qari, generatePlaylist]);
   return (
     <GlobalStates.Provider
       value={{
