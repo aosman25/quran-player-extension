@@ -11,8 +11,17 @@ import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
 import { lang } from "../types";
 const Header = () => {
-  const { loved, setLoved, qari, setMoshaf, moshaf, lang, setPlaying } =
-    useContext<GlobalStatesContext>(GlobalStates);
+  const {
+    loved,
+    setLoved,
+    qari,
+    setMoshaf,
+    moshaf,
+    lang,
+    setPlaying,
+    setSearchResult,
+    searchResult,
+  } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
     String(qari) as keyof typeof recitersList
@@ -26,13 +35,18 @@ const Header = () => {
     null
   );
   const moshafs: MoshafsType = moshafsData;
-  console.log(availableMoshafs);
   return (
     <div className="header-container">
       <div className="tools-container">
         {" "}
         <div className="search-container">
-          <input autoFocus type="text" placeholder="Search Surah..." />
+          <input
+            autoFocus
+            value={searchResult}
+            onChange={(e) => setSearchResult(e.target.value)}
+            type="text"
+            placeholder="Search Surah..."
+          />
           <button onClick={() => setLoved(!loved)} className="love-btn">
             {loved ? (
               <GoHeartFill size={23} color="#FF0000" />

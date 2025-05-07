@@ -12,7 +12,9 @@ export interface GlobalStatesContext {
     moshaf: number,
     setMoshaf: React.Dispatch<React.SetStateAction<number>>,
     loved: boolean,
-    setLoved: React.Dispatch<React.SetStateAction<boolean>>
+    setLoved: React.Dispatch<React.SetStateAction<boolean>>,
+    searchResult: string,
+    setSearchResult: React.Dispatch<React.SetStateAction<string>>
 }
 
 export interface Play {
