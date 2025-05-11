@@ -5,11 +5,12 @@ import { GoHeartFill } from "react-icons/go";
 import { FaBookOpen } from "react-icons/fa";
 import { FaHeadphonesAlt } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { GlobalStates } from "../GlobalStates";
-import { GlobalStatesContext, MoshafsType, Language } from "../types";
+import { GlobalStatesContext, MoshafsType, Language, Play } from "../types";
 import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
+import { animateScroll as scroll, scroller } from "react-scroll";
 
 const Header = () => {
   const {
@@ -40,6 +41,16 @@ const Header = () => {
     null
   );
   const moshafs: MoshafsType = moshafsData;
+  const scrollOptions = {
+    duration: 700,
+    smooth: true,
+  };
+  const playlistRef = useRef<Play[]>(playlist);
+  const playingRef = useRef<number>(playing);
+  useEffect(() => {
+    playlistRef.current = playlist;
+    playingRef.current = playing;
+  }, [playlist, playing]);
   return (
     <div className="header-container">
       <div className="tools-container">
@@ -73,6 +84,14 @@ const Header = () => {
                   onClick={() => {
                     setChooseReciter(false);
                     setSearchResult("");
+                    setTimeout(() => {
+                      scroller.scrollTo(
+                        String(
+                          String(playlistRef.current[playingRef.current]["id"])
+                        ),
+                        { ...scrollOptions, offset: -80 }
+                      );
+                    }, 100);
                   }}
                 >
                   <FaHeadphonesAlt className="filter-icon" />
@@ -105,6 +124,7 @@ const Header = () => {
                     onClick={() => {
                       setChooseReciter(true);
                       setSearchResult("");
+                      scroll.scrollToTop(scrollOptions);
                     }}
                   >
                     <MdPerson3 className="filter-icon" />

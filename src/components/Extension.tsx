@@ -1,12 +1,13 @@
 import Player from "./Player";
 import Surah from "./Surah";
-import { GlobalStatesContext } from "../types";
-import { useContext } from "react";
+import { GlobalStatesContext, Play } from "../types";
+import { useContext, useEffect, useRef } from "react";
 import { GlobalStates } from "../GlobalStates";
 import Header from "./Header";
 import reciterNames from "../data/quranmp3/sorted_reciter_names.json";
 import ReciterList from "./ReciterList";
 import "../styles/components/Extension.scss";
+import { Element, scroller } from "react-scroll";
 import NotFound from "./NotFound";
 
 type ReciterName = {
@@ -20,11 +21,61 @@ type ReciterNamesType = {
 };
 
 const Extension = () => {
-  const { surahsList, searchResult, lang, chooseReciter } =
+  const { surahsList, searchResult, lang, chooseReciter, playing, playlist } =
     useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
   const avaialbeReciters: JSX.Element[] = [];
+  const scrollTimeout = useRef<number | null>(null);
+  const playingRef = useRef<number>(playing);
+  const playlistRef = useRef<Play[]>(playlist);
+  const surahsListContainerRef = useRef(null);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout.current as number);
+      scrollTimeout.current = setTimeout(() => {
+        scroller.scrollTo(
+          String(String(playlistRef.current[playingRef.current]["id"])),
+          {
+            duration: 700,
+            smooth: true,
+            offset: -80,
+          }
+        );
+      }, 3500);
+    };
+
+    window.addEventListener("scroll", () => {
+      handleScroll();
+      if (surahsListContainerRef.current) {
+        const surahsListContainer = surahsListContainerRef.current;
+        surahsListContainer.style.pointerEvents = "none";
+      }
+    });
+    window.addEventListener("mousemove", () => {
+      handleScroll();
+      if (surahsListContainerRef.current) {
+        const surahsListContainer = surahsListContainerRef.current;
+        surahsListContainer.style.pointerEvents = "initial";
+      }
+    });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handleScroll);
+      clearTimeout(scrollTimeout.current as number);
+    };
+  }, []);
+
+  useEffect(() => {
+    playingRef.current = playing;
+    playlistRef.current = playlist;
+    // Set timeout to reset scroll status after 150ms of no scroll
+    scroller.scrollTo(String(String(playlist[playing]["id"])), {
+      duration: 700,
+      smooth: true,
+      offset: -80,
+    });
+  }, [playing, playlist]);
   if (!chooseReciter) {
     surahsList.forEach(
       ({ id, name, start_page, end_page, makkia, type }, index) => {
@@ -35,15 +86,17 @@ const Extension = () => {
           String(id).startsWith(searchResult.trim())
         ) {
           availableSurahs.push(
-            <Surah
-              id={id}
-              name={name}
-              start_page={start_page}
-              end_page={end_page}
-              makkia={makkia}
-              type={type}
-              key={index}
-            />
+            <Element name={String(id)}>
+              <Surah
+                id={id}
+                name={name}
+                start_page={start_page}
+                end_page={end_page}
+                makkia={makkia}
+                type={type}
+                key={index}
+              />
+            </Element>
           );
         }
       }
@@ -84,7 +137,7 @@ const Extension = () => {
       ) : !availableSurahs.length ? (
         <NotFound comment="No Surah found. Try checking the spelling or using the Surah number." />
       ) : (
-        availableSurahs
+        <div ref={surahsListContainerRef}>{availableSurahs}</div>
       )}
 
       <Player />
