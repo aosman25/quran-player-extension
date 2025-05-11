@@ -23,13 +23,15 @@ const Player = () => {
     playing: boolean;
     duration: number;
   } | null>(null);
-  const [audioVolume, setAudioVolume] = useState(audioVolumeRef.current);
+  const [audioVolume, setAudioVolume] = useState<number>(
+    audioVolumeRef.current
+  );
   const [loop, setLoop] = useState<boolean>(loopStateRef.current);
   const { playlist, playing, setPlaying } =
     useContext<GlobalStatesContext>(GlobalStates);
-  const playBtnTimeout = useRef<number | null>(null);
-  const volumePanelTimeout = useRef<number | null>(null);
-  const intervalRef = useRef<number | null>(null);
+  const playBtnTimeout = useRef<NodeJS.Timeout | null>(null);
+  const volumePanelTimeout = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);

@@ -1,5 +1,6 @@
-import requests
 import json
+from collections import defaultdict
+
 
 ar_surahs =  [
     {
@@ -10343,7 +10344,48 @@ def preprocess_moshafs_and_reciters():
         json.dump(reciters_final_data, file, indent=4, ensure_ascii=False)
         print("Data has been saved to reciters_final_data.json.json")
 
+def group_reciters_by_letter(input_path: str, output_path: str = "sorted_reciter_names.json") -> None:
+    """
+    Loads a JSON file of reciters, groups and sorts them by the initial Arabic and English letters of their names.
+    Each reciter is represented by a dictionary with only 'id' and 'name'.
+
+    Args:
+        input_path (str): Path to the input JSON file.
+        output_path (str): Path where the output JSON will be saved.
+    """
+    with open(input_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    grouped = {
+        "ar": defaultdict(list),
+        "en": defaultdict(list)
+    }
+
+    for reciter in data.values():
+        ar_letter = reciter["letter"]["ar"]
+        en_letter = reciter["letter"]["en"].upper()
+
+        grouped["ar"][ar_letter].append({
+            "id": reciter["id"],
+            "name": reciter["name"]["ar"]
+        })
+
+        grouped["en"][en_letter].append({
+            "id": reciter["id"],
+            "name": reciter["name"]["en"]
+        })
+
+    # Sort by letter and then sort lists by name
+    grouped["ar"] = {
+        k: sorted(v, key=lambda x: x["name"]) for k, v in sorted(grouped["ar"].items())
+    }
+    grouped["en"] = {
+        k: sorted(v, key=lambda x: x["name"]) for k, v in sorted(grouped["en"].items())
+    }
+
+    with open(output_path, "w", encoding="utf-8") as out_file:
+        json.dump(grouped, out_file, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":
-    preprocess_moshafs_and_reciters()
+    group_reciters_by_letter("src/data/quranmp3/reciters.json")

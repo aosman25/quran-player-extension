@@ -1,4 +1,3 @@
-
 export interface GlobalStatesContext {
     playlist: Play[],
     setPlaylist: React.Dispatch<React.SetStateAction<Play[]>>,
@@ -14,7 +13,11 @@ export interface GlobalStatesContext {
     loved: boolean,
     setLoved: React.Dispatch<React.SetStateAction<boolean>>,
     searchResult: string,
-    setSearchResult: React.Dispatch<React.SetStateAction<string>>
+    setSearchResult: React.Dispatch<React.SetStateAction<string>>,
+    chooseReciter: boolean,
+    setChooseReciter: React.Dispatch<React.SetStateAction<boolean>>,
+    notFound: boolean,
+    setNotFound: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export interface Play {
@@ -26,8 +29,8 @@ export interface Play {
 
 export interface rawReciterData {
     id: number,
-    name: lang,
-    letter: lang,
+    name: Language,
+    letter: Language,
     date: string,
     moshaf: moshaf[]
   }
@@ -39,7 +42,7 @@ interface moshaf{
   surah_list: number[]
 }
 
-export interface lang {
+export interface Language {
   ar: string,
   en: string
 }
@@ -58,7 +61,7 @@ export interface SurahData {
 export interface MoshafsType {
   [key: string | number]: {
     [key: string]: {
-      "name": lang
+      "name": Language
     }
   }
 }

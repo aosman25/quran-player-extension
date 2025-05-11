@@ -16,6 +16,8 @@ function App() {
   const [lang, setLang] = useState<"en" | "ar">("en");
   const [playing, setPlaying] = useState<number>(0);
   const [searchResult, setSearchResult] = useState<string>("");
+  const [chooseReciter, setChooseReciter] = useState<boolean>(false);
+  const [notFound, setNotFound] = useState<boolean>(false);
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
     const availableSurahs =
@@ -77,6 +79,10 @@ function App() {
         setLoved,
         searchResult,
         setSearchResult,
+        chooseReciter,
+        setChooseReciter,
+        notFound,
+        setNotFound,
       }}
     >
       <Extension />
