@@ -29,9 +29,9 @@ const Player = () => {
   const [loop, setLoop] = useState<boolean>(loopStateRef.current);
   const { playlist, playing, setPlaying } =
     useContext<GlobalStatesContext>(GlobalStates);
-  const playBtnTimeout = useRef<NodeJS.Timeout | null>(null);
-  const volumePanelTimeout = useRef<NodeJS.Timeout | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);

@@ -3,6 +3,16 @@ import reciterNames from "../data/quranmp3/sorted_reciter_names.json";
 import { GlobalStates } from "../GlobalStates";
 import "../styles/components/ReciterList.scss";
 
+type ReciterName = {
+  id: number;
+  name: string;
+};
+
+type ReciterNamesType = {
+  ar: Record<string, ReciterName[]>;
+  en: Record<string, ReciterName[]>;
+};
+
 const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
   const {
     lang,
@@ -14,25 +24,30 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     setSearchResult,
   } = useContext(GlobalStates);
   const availableQaris: JSX.Element[] = [];
-  reciterNames[lang][firstLetter].forEach(
-    ({ name, id }: { name: string; id: number }) => {
-      if (name.toLowerCase().startsWith(searchResult.trim().toLowerCase())) {
-        availableQaris.push(
-          <button
-            onClick={() => {
-              setChooseReciter(false);
-              setQari(id);
-              setPlaying(0);
-              setMoshaf(0);
-              setSearchResult("");
-            }}
-          >
-            {name}
-          </button>
-        );
-      }
+
+  const reciterNamesTyped = reciterNames as ReciterNamesType;
+  const langReciters = reciterNamesTyped[lang as keyof ReciterNamesType];
+  const reciters = langReciters[firstLetter] || [];
+
+  reciters.forEach(({ name, id }) => {
+    if (name.toLowerCase().startsWith(searchResult.trim().toLowerCase())) {
+      availableQaris.push(
+        <button
+          key={id}
+          onClick={() => {
+            setChooseReciter(false);
+            setQari(id);
+            setPlaying(0);
+            setMoshaf(0);
+            setSearchResult("");
+          }}
+        >
+          {name}
+        </button>
+      );
     }
-  );
+  });
+
   return availableQaris.length >= 1 &&
     (!searchResult ||
       firstLetter

@@ -9,6 +9,16 @@ import ReciterList from "./ReciterList";
 import "../styles/components/Extension.scss";
 import NotFound from "./NotFound";
 
+type ReciterName = {
+  id: number;
+  name: string;
+};
+
+type ReciterNamesType = {
+  ar: Record<string, ReciterName[]>;
+  en: Record<string, ReciterName[]>;
+};
+
 const Extension = () => {
   const { surahsList, searchResult, lang, chooseReciter } =
     useContext<GlobalStatesContext>(GlobalStates);
@@ -39,19 +49,21 @@ const Extension = () => {
       }
     );
   } else {
-    Object.keys(reciterNames[lang as keyof typeof reciterNames]).forEach(
-      (firstLetter) => {
-        if (
-          reciterNames[lang][firstLetter].some(({ name }: { name: string }) =>
-            name.toLowerCase().startsWith(searchResult.trim().toLowerCase())
-          )
-        ) {
-          avaialbeReciters.push(
-            <ReciterList key={firstLetter} firstLetter={firstLetter} />
-          );
-        }
+    const reciterNamesTyped = reciterNames as ReciterNamesType;
+    const langReciters = reciterNamesTyped[lang as keyof ReciterNamesType];
+
+    Object.keys(langReciters).forEach((firstLetter) => {
+      const reciters = langReciters[firstLetter];
+      if (
+        reciters.some(({ name }) =>
+          name.toLowerCase().startsWith(searchResult.trim().toLowerCase())
+        )
+      ) {
+        avaialbeReciters.push(
+          <ReciterList key={firstLetter} firstLetter={firstLetter} />
+        );
       }
-    );
+    });
   }
 
   return (
@@ -60,11 +72,11 @@ const Extension = () => {
       {chooseReciter ? (
         avaialbeReciters.length >= 1 ? (
           <div className="reciters-grid">
-            {Object.keys(reciterNames[lang as keyof typeof reciterNames]).map(
-              (firstLetter) => (
-                <ReciterList key={firstLetter} firstLetter={firstLetter} />
-              )
-            )}
+            {Object.keys(
+              (reciterNames as ReciterNamesType)[lang as keyof ReciterNamesType]
+            ).map((firstLetter) => (
+              <ReciterList key={firstLetter} firstLetter={firstLetter} />
+            ))}
           </div>
         ) : (
           <NotFound comment="No reciter found. Try a different name or check the spelling." />

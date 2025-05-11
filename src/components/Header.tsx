@@ -7,10 +7,10 @@ import { FaHeadphonesAlt } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
 import { useContext, useState } from "react";
 import { GlobalStates } from "../GlobalStates";
-import { GlobalStatesContext, MoshafsType } from "../types";
+import { GlobalStatesContext, MoshafsType, Language } from "../types";
 import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
-import { lang } from "../types";
+
 const Header = () => {
   const {
     loved,
@@ -79,14 +79,20 @@ const Header = () => {
 
                   {playlist[playing]["name"] +
                     " | " +
-                    recitersList[String(qari) as keyof typeof recitersList][
-                      "name"
-                    ][lang as keyof lang] +
+                    (
+                      recitersList[String(qari) as keyof typeof recitersList][
+                        "name"
+                      ] as Language
+                    )[lang as keyof Language] +
                     " | " +
                     (String(availableMoshafs[moshaf]["moshaf_id"]) in moshafs
-                      ? moshafs[String(availableMoshafs[moshaf]["moshaf_id"])][
-                          availableMoshafs[moshaf]["moshaf_type"]
-                        ]["name"][lang as keyof lang]
+                      ? (
+                          moshafs[
+                            String(availableMoshafs[moshaf]["moshaf_id"])
+                          ][availableMoshafs[moshaf]["moshaf_type"]][
+                            "name"
+                          ] as Language
+                        )[lang as keyof Language]
                       : "")}
                 </button>
               </Tooltip>
@@ -102,16 +108,20 @@ const Header = () => {
                     }}
                   >
                     <MdPerson3 className="filter-icon" />
-                    {recitersList[String(qari) as keyof typeof recitersList][
-                      "name"
-                    ][lang as keyof lang] +
+                    {(
+                      recitersList[String(qari) as keyof typeof recitersList][
+                        "name"
+                      ] as Language
+                    )[lang as keyof Language] +
                       (availableMoshafs.length == 1
                         ? " | " +
-                          moshafs[
-                            String(availableMoshafs[moshaf]["moshaf_id"])
-                          ][availableMoshafs[moshaf]["moshaf_type"]]["name"][
-                            lang as keyof lang
-                          ]
+                          (
+                            moshafs[
+                              String(availableMoshafs[moshaf]["moshaf_id"])
+                            ][availableMoshafs[moshaf]["moshaf_type"]][
+                              "name"
+                            ] as Language
+                          )[lang as keyof Language]
                         : "")}
                   </button>
                 </Tooltip>
@@ -119,67 +129,78 @@ const Header = () => {
               {availableMoshafs.length > 1 ? (
                 <div className="filter-btn-container">
                   <Tooltip title={changeMoshaf ? "" : "Change Moshaf"} arrow>
-                    <button
-                      onMouseLeave={() =>
-                        setChangeMoshafTimeout(
-                          setTimeout(() => setChangeMoshaf(false), 1000)
-                        )
-                      }
-                      onClick={() => {
-                        clearTimeout(changeMoshafTimeout as number);
-                        setChangeMoshaf(!changeMoshaf);
-                      }}
-                    >
-                      <FaBookOpen className="filter-icon" />
-                      {String(availableMoshafs[moshaf]["moshaf_id"]) in moshafs
-                        ? moshafs[
-                            String(availableMoshafs[moshaf]["moshaf_id"])
-                          ][availableMoshafs[moshaf]["moshaf_type"]]["name"][
-                            lang as keyof lang
-                          ]
-                        : null}
-                    </button>
-                    <div
-                      style={
-                        changeMoshaf
-                          ? { opacity: 1 }
-                          : { opacity: 0, display: "none" }
-                      }
-                      className="mohafs-main-container"
-                    >
-                      <div></div>
-                      <div
-                        onMouseOver={() =>
-                          clearTimeout(changeMoshafTimeout as number)
-                        }
+                    <>
+                      <button
                         onMouseLeave={() =>
                           setChangeMoshafTimeout(
                             setTimeout(() => setChangeMoshaf(false), 1000)
                           )
                         }
-                        className="mohafs-container"
+                        onClick={() => {
+                          clearTimeout(changeMoshafTimeout as number);
+                          setChangeMoshaf(!changeMoshaf);
+                        }}
                       >
-                        {availableMoshafs.map(
-                          ({ moshaf_id, moshaf_type }, index) => {
-                            return (
-                              <button
-                                onClick={() => {
-                                  if (index !== moshaf) {
-                                    setMoshaf(index);
-                                    setPlaying(0);
-                                  }
-                                  setChangeMoshaf(false);
-                                  clearTimeout(changeMoshafTimeout as number);
-                                }}
-                              >
-                                {moshafs[moshaf_id][moshaf_type]["name"][lang]}
-                              </button>
-                            );
+                        <FaBookOpen className="filter-icon" />
+                        {String(availableMoshafs[moshaf]["moshaf_id"]) in
+                        moshafs
+                          ? (
+                              moshafs[
+                                String(availableMoshafs[moshaf]["moshaf_id"])
+                              ][availableMoshafs[moshaf]["moshaf_type"]][
+                                "name"
+                              ] as Language
+                            )[lang as keyof Language]
+                          : null}
+                      </button>
+                      <div
+                        style={
+                          changeMoshaf
+                            ? { opacity: 1 }
+                            : { opacity: 0, display: "none" }
+                        }
+                        className="mohafs-main-container"
+                      >
+                        <div></div>
+                        <div
+                          onMouseOver={() =>
+                            clearTimeout(changeMoshafTimeout as number)
                           }
-                        )}
+                          onMouseLeave={() =>
+                            setChangeMoshafTimeout(
+                              setTimeout(() => setChangeMoshaf(false), 1000)
+                            )
+                          }
+                          className="mohafs-container"
+                        >
+                          {availableMoshafs.map(
+                            ({ moshaf_id, moshaf_type }, index) => {
+                              return (
+                                <button
+                                  onClick={() => {
+                                    if (index !== moshaf) {
+                                      setMoshaf(index);
+                                      setPlaying(0);
+                                    }
+                                    setChangeMoshaf(false);
+                                    clearTimeout(changeMoshafTimeout as number);
+                                  }}
+                                >
+                                  {
+                                    (
+                                      moshafs[moshaf_id][moshaf_type][
+                                        "name"
+                                      ] as Language
+                                    )[lang as keyof Language]
+                                  }
+                                </button>
+                              );
+                            }
+                          )}
+                        </div>
+                        <div></div>
                       </div>
-                      <div></div>
-                    </div>
+                    </>
                   </Tooltip>
                 </div>
               ) : null}
