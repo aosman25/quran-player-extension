@@ -106,7 +106,7 @@
                 transform: scale(1.1);
             }
             &:active {
-                transform: scale(0.9);
+                transform: scale(1);
             }
         }
         .play-button {
@@ -128,7 +128,7 @@
             visibility: hidden;
             opacity: 0;
             position: absolute;
-            left: 12px;
+            left: 18px;
             bottom: 50px;
             display: flex;
             background-color: #f2f2f2;
@@ -141,7 +141,7 @@
             content: "";
             position: absolute;
             bottom: -7px; /* Adjust to position below the main box */
-            left: 17px; /* Adjust to align with the box */
+            left: 11px; /* Adjust to align with the box */
             width: 0;
             height: 0;
             border-left: 10px solid transparent;

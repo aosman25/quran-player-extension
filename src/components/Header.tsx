@@ -42,7 +42,7 @@ const Header = () => {
   );
   const moshafs: MoshafsType = moshafsData;
   const scrollOptions = {
-    duration: 700,
+    duration: 0,
     smooth: true,
   };
   const playlistRef = useRef<Play[]>(playlist);
@@ -91,7 +91,7 @@ const Header = () => {
                         ),
                         { ...scrollOptions, offset: -80 }
                       );
-                    }, 100);
+                    }, 1);
                   }}
                 >
                   <FaHeadphonesAlt className="filter-icon" />

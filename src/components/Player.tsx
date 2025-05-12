@@ -27,7 +27,7 @@ const Player = () => {
     audioVolumeRef.current
   );
   const [loop, setLoop] = useState<boolean>(loopStateRef.current);
-  const { playlist, playing, setPlaying } =
+  const { playlist, playing, setPlaying, playOptions, setPlayOptions } =
     useContext<GlobalStatesContext>(GlobalStates);
   const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,6 +48,12 @@ const Player = () => {
       playing: playingStateRef.current,
       duration: audio.duration,
     });
+    setPlayOptions({
+      playing: playingStateRef.current,
+      duration: audio.duration,
+      currentTime: audio.currentTime,
+    });
+
     if (playingStateRef.current) {
       audio.play();
       progress.style.width = "0";
@@ -74,11 +80,23 @@ const Player = () => {
       }
       intervalRef.current = setInterval(() => {
         setNow((now) => now + 1);
+        setPlayOptions({
+          playing: playingStateRef.current,
+          currentTime: audio.currentTime,
+          duration: audio.duration,
+        });
       }, 1000);
       playingStateRef.current = true;
+
       audio.play();
     }
+
     setAudioState({ ...audioState, playing: !audioState.playing });
+    setPlayOptions({
+      playing: !audioState.playing,
+      currentTime: audio.currentTime,
+      duration: audio.duration,
+    });
   }, [audioState]);
 
   // Handle click on progress bar
@@ -105,17 +123,33 @@ const Player = () => {
       const { duration } = audioState;
       const clickX = e.clientX - containerRect.left;
       const audioProgress = (clickX / maxX) * 100;
+
+      // Immediately update pointer and progress without transition
+      pointer.style.transition = "none";
+      progressBar.style.transition = "none";
       pointer.style.left = `${clickX - 5}px`;
       progressBar.style.width = `${audioProgress}%`;
-      progressBar.style.transition = "none";
+
+      // Set new audio time
+      audio.currentTime = (duration * audioProgress) / 100;
       audio.pause();
       setAudioState({ ...audioState, playing: false });
+      setPlayOptions({
+        playing: false,
+        currentTime: audio.currentTime,
+        duration: audio.duration,
+      });
 
+      // Resume playback after a very short delay
       if (playBtnTimeout.current) {
         clearTimeout(playBtnTimeout.current);
       }
-      playBtnTimeout.current = setTimeout(() => playBtn.click(), 300);
-      audio.currentTime = (duration * audioProgress) / 100;
+      playBtnTimeout.current = setTimeout(() => {
+        playBtn.click();
+        // Restore transitions after playback resumes
+        pointer.style.transition = "opacity 300ms ease-out";
+        progressBar.style.transition = "width 100ms linear";
+      }, 50);
     },
     [audioState]
   );
@@ -152,6 +186,11 @@ const Player = () => {
       progressBar.style.transition = "none";
       audio.pause();
       setAudioState({ ...audioState, playing: false });
+      setPlayOptions({
+        playing: false,
+        currentTime: audio.currentTime,
+        duration: audio.duration,
+      });
 
       if (playBtnTimeout.current) {
         clearTimeout(playBtnTimeout.current);
@@ -269,6 +308,16 @@ const Player = () => {
     window.addEventListener("resize", handleWindowResize);
     return () => window.removeEventListener("resize", handleWindowResize);
   }, []);
+
+  useEffect(() => {
+    if (
+      audioRef.current &&
+      playBtnRef.current &&
+      audioRef.current.paused !== !playOptions?.playing
+    ) {
+      playBtnRef.current.click();
+    }
+  }, [playOptions?.playing]);
   return (
     <div ref={playerRef} className="player">
       <audio
@@ -315,15 +364,9 @@ const Player = () => {
                       audioRef.current.currentTime,
                       "seconds"
                     );
-                    const duration = dayjs.duration(
-                      audioRef.current.duration,
-                      "seconds"
-                    );
-                    return duration.hours() > 0
-                      ? currentTime.format("HH:mm:ss")
-                      : currentTime.format("mm:ss");
+                    return currentTime.format("HH:mm:ss");
                   })()
-                : "00:00"}
+                : "00:00:00"}
             </span>
             <span> / </span>
             <span className="end-timestamp">
@@ -334,11 +377,11 @@ const Player = () => {
                       audioRef.current.duration,
                       "seconds"
                     );
-                    return duration.hours() > 0
+                    return audioRef.current.duration
                       ? duration.format("HH:mm:ss")
-                      : duration.format("mm:ss");
+                      : "00:00:00";
                   })()
-                : "00:00"}
+                : "00:00:00"}
             </span>
           </p>
         </div>

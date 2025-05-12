@@ -3,7 +3,7 @@ import "./components/Extension";
 import Extension from "./components/Extension";
 import { GlobalStates } from "./GlobalStates";
 import { useCallback, useEffect, useState } from "react";
-import { Play, rawReciterData } from "./types";
+import { Play, PlayOptions, rawReciterData } from "./types";
 import surahs from "./data/quranmp3/surahs.json";
 import recitersList from "./data/quranmp3/reciters.json";
 import { SurahData } from "./types";
@@ -18,6 +18,11 @@ function App() {
   const [searchResult, setSearchResult] = useState<string>("");
   const [chooseReciter, setChooseReciter] = useState<boolean>(false);
   const [notFound, setNotFound] = useState<boolean>(false);
+  const [playOptions, setPlayOptions] = useState<PlayOptions>({
+    playing: false,
+    duration: 0,
+    currentTime: 0,
+  });
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
     const availableSurahs =
@@ -83,6 +88,8 @@ function App() {
         setChooseReciter,
         notFound,
         setNotFound,
+        playOptions,
+        setPlayOptions,
       }}
     >
       <Extension />

@@ -17,9 +17,17 @@ export interface GlobalStatesContext {
     chooseReciter: boolean,
     setChooseReciter: React.Dispatch<React.SetStateAction<boolean>>,
     notFound: boolean,
-    setNotFound: React.Dispatch<React.SetStateAction<boolean>>
+    setNotFound: React.Dispatch<React.SetStateAction<boolean>>,
+    playOptions: PlayOptions ,
+    setPlayOptions: React.Dispatch<React.SetStateAction<PlayOptions>>
 }
 
+
+export interface PlayOptions {
+  playing: boolean,
+  duration: number,
+  currentTime: number,
+}
 export interface Play {
     name: string,
     writer: string,
