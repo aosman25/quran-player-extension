@@ -32,7 +32,7 @@ const Extension = () => {
   const scrollOptions = {
     duration: 700,
     smooth: true,
-    offset: -80,
+    offset: -120,
   };
 
   useEffect(() => {

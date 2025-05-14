@@ -53,6 +53,9 @@ const Header = () => {
   }, [playlist, playing]);
   return (
     <div className="header-container">
+      <div>
+        <p className="brand-name">QuranStream</p>
+      </div>
       <div className="tools-container">
         {" "}
         <div className="search-container">

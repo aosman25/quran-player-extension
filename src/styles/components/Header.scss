@@ -2,7 +2,8 @@
 
 .header-container {
     width: 100vw;
-    height: 80px;
+    height: 100px;
+    padding: 10px 0;
     position: fixed;
     top: 0;
     left: 0;
@@ -13,6 +14,15 @@
     gap: 10px;
     flex-direction: column;
     z-index: 1;
+    .brand-name {
+        font-family: "Cal Sans", sans-serif;
+        font-size: 30px;
+        user-select: none;
+    }
+    .brand-name:hover {
+        cursor: initial;
+        
+    }
     .tools-container {
         width: 90%;
         display: flex;
@@ -35,6 +45,7 @@
             background-color: $dark-grey;
             border: none;
             color: white;
+            font-weight: bold;
         }
         .love-btn {
             display: flex;

@@ -27,8 +27,15 @@ const Player = () => {
     audioVolumeRef.current
   );
   const [loop, setLoop] = useState<boolean>(loopStateRef.current);
-  const { playlist, playing, setPlaying, playOptions, setPlayOptions } =
-    useContext<GlobalStatesContext>(GlobalStates);
+  const {
+    playlist,
+    playing,
+    setPlaying,
+    playOptions,
+    setPlayOptions,
+    qari,
+    moshaf,
+  } = useContext<GlobalStatesContext>(GlobalStates);
   const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -273,7 +280,7 @@ const Player = () => {
     if (!audioState.playing) {
       playBtn.click();
     }
-  }, [playing]);
+  }, [playing, qari, moshaf]);
 
   // Change the volume on slider move
   useEffect(() => {
