@@ -47,15 +47,10 @@
             color: white;
             font-weight: bold;
         }
-        .love-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: $dark-grey;
-            border: none;
-            width: 50px;
+        .lang-switch {
+            color: $silver-gray;
         }
-        .love-btn:hover {
+        .lang-switch:hover {
             cursor: pointer;
         }
     }
@@ -67,7 +62,7 @@
         }
         button{
             .filter-icon {
-                margin-right: 5px;
+                margin: 0 5px;
                 font-size: 15px;
             }
             display: flex;

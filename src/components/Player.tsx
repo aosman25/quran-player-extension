@@ -28,6 +28,7 @@ const Player = () => {
   );
   const [loop, setLoop] = useState<boolean>(loopStateRef.current);
   const {
+    lang,
     playlist,
     playing,
     setPlaying,
@@ -43,6 +44,20 @@ const Player = () => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
 
+  // Helper function to position pointer based on language
+  const positionPointer = useCallback(
+    (pointer: HTMLDivElement, x: number, isRtl: boolean) => {
+      if (isRtl) {
+        pointer.style.right = `${x}px`;
+        pointer.style.left = "auto";
+      } else {
+        pointer.style.left = `${x}px`;
+        pointer.style.right = "auto";
+      }
+    },
+    []
+  );
+
   // Handle metadata load
   const onMetaDataLoad = useCallback(() => {
     if (!audioRef.current || !progressRef.current || !pointerRef.current)
@@ -50,6 +65,7 @@ const Player = () => {
     const audio = audioRef.current;
     const progress = progressRef.current;
     const pointer = pointerRef.current;
+    const isRtl = lang === "ar";
 
     setAudioState({
       playing: playingStateRef.current,
@@ -64,11 +80,11 @@ const Player = () => {
     if (playingStateRef.current) {
       audio.play();
       progress.style.width = "0";
-      pointer.style.left = `-5px`;
+      positionPointer(pointer, -5, isRtl);
     } else {
       audio.pause();
     }
-  }, []);
+  }, [lang, positionPointer]);
 
   // Handle play/pause audio
   const handlePlayAudio = useCallback(() => {
@@ -126,15 +142,23 @@ const Player = () => {
       const playBtn = playBtnRef.current;
       const containerRect = container.getBoundingClientRect();
       const maxX = containerRect.width;
+      const isRtl = lang === "ar";
 
       const { duration } = audioState;
-      const clickX = e.clientX - containerRect.left;
+      let clickX;
+
+      if (isRtl) {
+        clickX = containerRect.right - e.clientX;
+      } else {
+        clickX = e.clientX - containerRect.left;
+      }
+
       const audioProgress = (clickX / maxX) * 100;
 
       // Immediately update pointer and progress without transition
       pointer.style.transition = "none";
       progressBar.style.transition = "none";
-      pointer.style.left = `${clickX - 5}px`;
+      positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
 
       // Set new audio time
@@ -158,7 +182,7 @@ const Player = () => {
         progressBar.style.transition = "width 100ms linear";
       }, 50);
     },
-    [audioState]
+    [audioState, lang, positionPointer]
   );
 
   // Handle mouse move during drag
@@ -183,12 +207,21 @@ const Player = () => {
       const containerRect = container.getBoundingClientRect();
       const maxX = containerRect.width;
       const minX = 0;
+      const isRtl = lang === "ar";
 
       const { duration } = audioState;
-      const moveX = e.clientX - containerRect.left;
+      let moveX;
+
+      if (isRtl) {
+        moveX = containerRect.right - e.clientX;
+      } else {
+        moveX = e.clientX - containerRect.left;
+      }
+
       const clickX = Math.max(minX, Math.min(maxX, moveX));
       const audioProgress = (clickX / maxX) * 100;
-      pointer.style.left = `${clickX - 5}px`;
+
+      positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
       progressBar.style.transition = "none";
       audio.pause();
@@ -208,7 +241,7 @@ const Player = () => {
       }, 300);
       audio.currentTime = (duration * audioProgress) / 100;
     },
-    [audioState, isDragging]
+    [audioState, isDragging, lang, positionPointer]
   );
 
   // Update progress bar and pointer position
@@ -226,6 +259,7 @@ const Player = () => {
     const audio = audioRef.current;
     const pointer = pointerRef.current;
     const container = containerRef.current;
+    const isRtl = lang === "ar";
 
     const timeRemaining = (audio.duration - audio.currentTime) * 1000;
     const currentProgress = audio.currentTime / audio.duration;
@@ -235,20 +269,36 @@ const Player = () => {
     if (audioState.playing) {
       progress.style.width = "100%";
       progress.style.transition = `width ${timeRemaining}ms linear`;
-      pointer.style.left = `${maxX - 5}px`;
-      pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+
+      if (isRtl) {
+        pointer.style.right = `${maxX - 5}px`;
+        pointer.style.left = "auto";
+        pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
+      } else {
+        pointer.style.left = `${maxX - 5}px`;
+        pointer.style.right = "auto";
+        pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+      }
     } else {
       progress.style.width = `${currentProgress * 100}%`;
       progress.style.transition = "none";
-      pointer.style.left = `${maxX * currentProgress - 5}px`;
-      pointer.style.transition = "opacity 300ms ease-out";
+
+      if (isRtl) {
+        pointer.style.right = `${maxX * currentProgress - 5}px`;
+        pointer.style.left = "auto";
+        pointer.style.transition = "opacity 300ms ease-out";
+      } else {
+        pointer.style.left = `${maxX * currentProgress - 5}px`;
+        pointer.style.right = "auto";
+        pointer.style.transition = "opacity 300ms ease-out";
+      }
     }
 
     // Cleanup
     return () => {
       progress.style.transition = "none";
     };
-  }, [audioState]);
+  }, [audioState, lang]);
 
   // Add/remove mousemove event listener for dragging
   useEffect(() => {
@@ -273,14 +323,24 @@ const Player = () => {
     const pointer = pointerRef.current;
     const progress = progressRef.current;
     const playBtn = playBtnRef.current;
+    const isRtl = lang === "ar";
+
     progress.style.width = "0";
-    pointer.style.left = `-5px`;
+
+    if (isRtl) {
+      pointer.style.right = `-5px`;
+      pointer.style.left = "auto";
+    } else {
+      pointer.style.left = `-5px`;
+      pointer.style.right = "auto";
+    }
+
     progress.style.transition = "none";
     pointer.style.transition = "none";
     if (!audioState.playing) {
       playBtn.click();
     }
-  }, [playing, qari, moshaf]);
+  }, [playing, qari, moshaf, lang]);
 
   // Change the volume on slider move
   useEffect(() => {
@@ -302,19 +362,101 @@ const Player = () => {
       const maxX = containerRect.width;
       const currentProgress = audio.currentTime / audio.duration;
       const timeRemaining = (audio.duration - audio.currentTime) * 1000;
-      pointer.style.left = `${maxX * currentProgress - 5}px`;
-      pointer.style.transition = "opacity 300ms ease-out";
-      if (!audio.paused) {
-        setTimeout(() => {
-          pointer.style.left = `${maxX - 5}px`;
-          pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
-        }, 1);
+      const isRtl = lang === "ar";
+
+      if (isRtl) {
+        pointer.style.right = `${maxX * currentProgress - 5}px`;
+        pointer.style.left = "auto";
+        pointer.style.transition = "opacity 300ms ease-out";
+
+        if (!audio.paused) {
+          setTimeout(() => {
+            pointer.style.right = `${maxX - 5}px`;
+            pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
+          }, 1);
+        }
+      } else {
+        pointer.style.left = `${maxX * currentProgress - 5}px`;
+        pointer.style.right = "auto";
+        pointer.style.transition = "opacity 300ms ease-out";
+
+        if (!audio.paused) {
+          setTimeout(() => {
+            pointer.style.left = `${maxX - 5}px`;
+            pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+          }, 1);
+        }
       }
     };
 
     window.addEventListener("resize", handleWindowResize);
     return () => window.removeEventListener("resize", handleWindowResize);
-  }, []);
+  }, [lang]);
+
+  // Apply language-based direction to the progress container
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    container.style.direction = lang === "ar" ? "rtl" : "ltr";
+  }, [lang]);
+
+  // Handle language change while audio is playing
+  useEffect(() => {
+    if (
+      !progressRef.current ||
+      !pointerRef.current ||
+      !audioRef.current ||
+      !containerRef.current ||
+      !audioState
+    )
+      return;
+
+    const progress = progressRef.current;
+    const audio = audioRef.current;
+    const pointer = pointerRef.current;
+    const container = containerRef.current;
+    const isRtl = lang === "ar";
+
+    // Reset transitions
+    pointer.style.transition = "none";
+    progress.style.transition = "none";
+
+    const currentProgress = audio.currentTime / audio.duration;
+    const containerRect = container.getBoundingClientRect();
+    const maxX = containerRect.width;
+
+    // Update pointer position with the new direction
+    if (isRtl) {
+      pointer.style.right = `${maxX * currentProgress - 5}px`;
+      pointer.style.left = "auto";
+    } else {
+      pointer.style.left = `${maxX * currentProgress - 5}px`;
+      pointer.style.right = "auto";
+    }
+
+    // Update progress bar with current progress
+    progress.style.width = `${currentProgress * 100}%`;
+
+    // If audio is playing, we need to restore the animation
+    if (!audio.paused && audioState.playing) {
+      const timeRemaining = (audio.duration - audio.currentTime) * 1000;
+
+      // Short delay to apply the transition after the position update
+      setTimeout(() => {
+        progress.style.width = "100%";
+        progress.style.transition = `width ${timeRemaining}ms linear`;
+
+        if (isRtl) {
+          pointer.style.right = `${maxX - 5}px`;
+          pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
+        } else {
+          pointer.style.left = `${maxX - 5}px`;
+          pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+        }
+      }, 10);
+    }
+  }, [lang, audioState]);
 
   useEffect(() => {
     if (
@@ -343,11 +485,21 @@ const Player = () => {
           const progress = progressRef.current;
           const audio = audioRef.current;
           const nextBtn = nextBtnRef.current;
+          const isRtl = lang === "ar";
+
           if (loopStateRef.current) {
             if (!audioState) return;
             audio.currentTime = 0;
             progress.style.width = "0";
-            pointer.style.left = `-5px`;
+
+            if (isRtl) {
+              pointer.style.right = `-5px`;
+              pointer.style.left = "auto";
+            } else {
+              pointer.style.left = `-5px`;
+              pointer.style.right = "auto";
+            }
+
             progress.style.transition = "none";
             pointer.style.transition = "none";
             audio.play();
@@ -357,12 +509,12 @@ const Player = () => {
           }
         }}
       ></audio>
-      <div className="audio-content">
+      <div className={`audio-content ${lang == "en" ? "en-font" : "ar-font"}`}>
         <p className="surah-name">{playlist[playing].name}</p>
         <p className="qari-name">{playlist[playing].writer}</p>
       </div>
       <div className="progress">
-        <div className="timestamp">
+        <div className="timestamp en-font">
           <p>
             <span className="start-timestamp">
               {audioRef.current
@@ -395,7 +547,7 @@ const Player = () => {
         <div
           ref={containerRef}
           onClick={onMouseClick}
-          className="bar-container"
+          className={`bar-container ${lang === "ar" ? "rtl" : "ltr"}`}
         >
           <div
             ref={pointerRef}
@@ -466,7 +618,9 @@ const Player = () => {
               ? "opacity 300ms ease-in-out" // Immediate transition when showing
               : "opacity 300ms ease-in-out, visibility 0s 300ms", // Delayed hiding
           }}
-          className="volume-panel-wrapper"
+          className={`volume-panel-wrapper volume-panel-wrapper-${
+            lang == "en" ? "ltr" : "rtl"
+          }`}
         >
           <Slider
             orientation="vertical"

@@ -13,7 +13,7 @@ function App() {
   const [qari, setQari] = useState<number>(123); // Default Mishari Alafasi
   const [moshaf, setMoshaf] = useState<number>(1); // Default Moshaf
   const [loved, setLoved] = useState<boolean>(false);
-  const [lang, setLang] = useState<"en" | "ar">("en");
+  const [lang, setLang] = useState<"en" | "ar">("ar");
   const [playing, setPlaying] = useState<number>(0);
   const [searchResult, setSearchResult] = useState<string>("");
   const [chooseReciter, setChooseReciter] = useState<boolean>(false);
@@ -23,6 +23,7 @@ function App() {
     duration: 0,
     currentTime: 0,
   });
+
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
     const availableSurahs =
@@ -66,6 +67,9 @@ function App() {
   useEffect(() => {
     setPlaylist(generatePlaylist(qari));
   }, [moshaf, qari, generatePlaylist]);
+  useEffect(() => {
+    document.dir = lang == "en" ? "ltr" : "rtl";
+  }, [lang]);
   return (
     <GlobalStates.Provider
       value={{

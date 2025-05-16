@@ -63,7 +63,7 @@ const Surah = ({ id, name }: SurahData) => {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <div className="id-box">
+        <div className="id-box en-font">
           {playing == surahIndex ? (
             playOptions?.playing ? (
               <button
@@ -95,10 +95,12 @@ const Surah = ({ id, name }: SurahData) => {
             id
           )}
         </div>
-        <div>{name[lang as keyof typeof name]}</div>
+        <div className={`${lang == "en" ? "en-font" : "ar-font"}`}>
+          {name[lang as keyof typeof name]}
+        </div>
 
         {playing == surahIndex ? (
-          <div>
+          <div className="en-font">
             <span className="start-timestamp">
               {" "}
               {(() => {

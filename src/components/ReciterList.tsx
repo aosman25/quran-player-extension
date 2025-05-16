@@ -33,6 +33,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     if (name.toLowerCase().startsWith(searchResult.trim().toLowerCase())) {
       availableQaris.push(
         <button
+          className={`${lang == "en" ? "en-font" : "ar-font"}`}
           key={id}
           onClick={() => {
             setChooseReciter(false);
@@ -55,7 +56,9 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
         .startsWith(searchResult.trim()[0].toLowerCase())) ? (
     <div className="reciter-list">
       <div>
-        <p>{firstLetter}</p>
+        <p className={`${lang == "en" ? "en-font" : "ar-font"}`}>
+          {firstLetter}
+        </p>
         <hr />
       </div>
       <div className="reciter-sublist">{availableQaris}</div>

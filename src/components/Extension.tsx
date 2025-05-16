@@ -21,8 +21,15 @@ type ReciterNamesType = {
 };
 
 const Extension = () => {
-  const { surahsList, searchResult, lang, chooseReciter, playing, playlist } =
-    useContext<GlobalStatesContext>(GlobalStates);
+  const {
+    surahsList,
+    searchResult,
+    lang,
+    chooseReciter,
+    playing,
+    playlist,
+    qari,
+  } = useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
   const avaialbeReciters: JSX.Element[] = [];
   const scrollTimeout = useRef<number | null>(null);
@@ -66,7 +73,12 @@ const Extension = () => {
       clearTimeout(scrollTimeout.current as number);
     };
   }, []);
-
+  useEffect(() => {
+    scroller.scrollTo(
+      String(String(playlistRef.current[playingRef.current]["id"])),
+      { ...scrollOptions, duration: 0 }
+    );
+  }, [lang, qari]);
   useEffect(() => {
     playingRef.current = playing;
     playlistRef.current = playlist;
@@ -129,10 +141,22 @@ const Extension = () => {
             ))}
           </div>
         ) : (
-          <NotFound comment="No reciter found. Try a different name or check the spelling." />
+          <NotFound
+            comment={
+              lang == "en"
+                ? "No reciter found. Try a different name or check the spelling."
+                : "لم يتم العثور على قارئ. جرّب اسمًا مختلفًا أو تحقق من طريقة الكتابة."
+            }
+          />
         )
       ) : !availableSurahs.length ? (
-        <NotFound comment="No Surah found. Try checking the spelling or using the Surah number." />
+        <NotFound
+          comment={
+            lang == "en"
+              ? "No Surah found. Try checking the spelling or using the Surah number."
+              : "لم يتم العثور على سورة. حاول التحقق من طريقة الكتابة أو استخدام رقم السورة."
+          }
+        />
       ) : (
         <div ref={surahsListContainerRef}>{availableSurahs}</div>
       )}

@@ -1,7 +1,6 @@
 import "../styles/components/Header.scss";
 import { MdPerson3 } from "react-icons/md";
-import { GoHeart } from "react-icons/go";
-import { GoHeartFill } from "react-icons/go";
+
 import { FaBookOpen } from "react-icons/fa";
 import { FaHeadphonesAlt } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
@@ -14,12 +13,11 @@ import { animateScroll as scroll, scroller } from "react-scroll";
 
 const Header = () => {
   const {
-    loved,
-    setLoved,
     qari,
     setMoshaf,
     moshaf,
     lang,
+    setLang,
     playlist,
     playing,
     setPlaying,
@@ -52,7 +50,7 @@ const Header = () => {
     playingRef.current = playing;
   }, [playlist, playing]);
   return (
-    <div className="header-container">
+    <div dir="" className="header-container">
       <div>
         <p className="brand-name">QuranStream</p>
       </div>
@@ -64,26 +62,35 @@ const Header = () => {
             value={searchResult}
             onChange={(e) => setSearchResult(e.target.value)}
             type="text"
+            className={`${lang == "en" ? "en-font" : "ar-font"}`}
             placeholder={
-              chooseReciter ? "Search Reciter..." : "Search Surah..."
+              chooseReciter
+                ? lang == "en"
+                  ? "Search Reciter..."
+                  : "ابحث عن قارئ..."
+                : lang == "en"
+                ? "Search Surah..."
+                : "ابحث عن سورة..."
             }
           />
-          {!chooseReciter ? (
-            <button onClick={() => setLoved(!loved)} className="love-btn">
-              {loved ? (
-                <GoHeartFill size={23} color="#FF0000" />
-              ) : (
-                <GoHeart size={23} color="white" />
-              )}
-            </button>
-          ) : null}
+          <p
+            className={`lang-switch  ${lang == "ar" ? "en-font" : "ar-font"}`}
+            onClick={() => setLang(lang == "en" ? "ar" : "en")}
+          >
+            {lang == "en" ? "عربي" : "English"}
+          </p>
         </div>
         <div className="filter-container">
           {chooseReciter ? (
             <div className="filter-btn-container">
-              <Tooltip title="Change Surah" arrow>
+              <Tooltip
+                title={lang == "en" ? "Change Surah" : "غيّر السورة"}
+                arrow
+              >
                 <button
-                  className="reciter-name"
+                  className={`reciter-name  ${
+                    lang == "en" ? "en-font" : "ar-font"
+                  }`}
                   onClick={() => {
                     setChooseReciter(false);
                     setSearchResult("");
@@ -92,7 +99,7 @@ const Header = () => {
                         String(
                           String(playlistRef.current[playingRef.current]["id"])
                         ),
-                        { ...scrollOptions, offset: -80 }
+                        { ...scrollOptions, offset: -120 }
                       );
                     }, 1);
                   }}
@@ -122,13 +129,17 @@ const Header = () => {
           ) : (
             <>
               <div className="filter-btn-container">
-                <Tooltip title="Change Reciter" arrow>
+                <Tooltip
+                  title={lang == "en" ? "Change Reciter" : "غيّر القارئ"}
+                  arrow
+                >
                   <button
                     onClick={() => {
                       setChooseReciter(true);
                       setSearchResult("");
                       scroll.scrollToTop(scrollOptions);
                     }}
+                    className={`${lang == "en" ? "en-font" : "ar-font"}`}
                   >
                     <MdPerson3 className="filter-icon" />
                     {(
@@ -151,9 +162,10 @@ const Header = () => {
               </div>
               {availableMoshafs.length > 1 ? (
                 <div className="filter-btn-container">
-                  <Tooltip title={changeMoshaf ? "" : "Change Moshaf"} arrow>
+                  <Tooltip title={"Change Moshaf"} arrow>
                     <>
                       <button
+                        className={`${lang == "en" ? "en-font" : "ar-font"}`}
                         onMouseLeave={() =>
                           setChangeMoshafTimeout(
                             setTimeout(() => setChangeMoshaf(false), 1000)
@@ -200,6 +212,9 @@ const Header = () => {
                             ({ moshaf_id, moshaf_type }, index) => {
                               return (
                                 <button
+                                  className={`${
+                                    lang == "en" ? "en-font" : "ar-font"
+                                  }`}
                                   onClick={() => {
                                     if (index !== moshaf) {
                                       setMoshaf(index);
