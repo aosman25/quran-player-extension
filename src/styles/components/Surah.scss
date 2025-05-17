@@ -1,6 +1,7 @@
 @import "../colors";
+@import "../variables.scss";
 .surah-box {
-    display: grid;
+     display: grid;
     grid-template-columns: 120px 1fr 150px;
     padding: 10px;
     transition: background-color 0.3s ease;
@@ -67,4 +68,14 @@
       background-color: $teal;
       cursor: pointer;
     }
+}
+
+@media screen and (max-width: $width-breakpoint) {
+  .surah-box {
+    padding: 10px 0;
+    grid-template-columns: 60px 1fr 150px;
+    .id-box {
+      margin-right: 2px;
+    }
+  }
 }

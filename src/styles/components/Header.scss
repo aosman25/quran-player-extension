@@ -1,5 +1,5 @@
 @import '../_colors.scss';
-
+@import '../variables.scss';
 .header-container {
     width: 100vw;
     height: 100px;
@@ -94,6 +94,7 @@
         justify-content: center;
         gap: 15px;
         position: relative;
+            white-space: nowrap;
     }
     .mohafs-main-container {
         position: absolute;
@@ -122,4 +123,28 @@
    
     }
 
+}
+
+
+@media screen and (max-width: $width-breakpoint) {
+    .header-container {
+        height: 150px;
+        padding-top: 0;
+        .brand-name {
+            font-size: 25px;
+        }
+    }
+    
+    .filter-container {
+        margin: 5px;
+        display: flex;
+        flex-direction: column;
+    }
+    .filter-btn-container {
+  .mohafs-main-container {
+            grid-template-columns: 1fr 250px 1fr;
+            right: -7px;
+    }
+    }
+  
 }

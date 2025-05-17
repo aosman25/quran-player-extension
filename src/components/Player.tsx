@@ -36,6 +36,7 @@ const Player = () => {
     setPlayOptions,
     qari,
     moshaf,
+    setPageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -387,6 +388,7 @@ const Player = () => {
           }, 1);
         }
       }
+      setPageWidth(window.innerWidth);
     };
 
     window.addEventListener("resize", handleWindowResize);
@@ -634,38 +636,42 @@ const Player = () => {
             }}
           />
         </div>
-        <button
-          onClick={() => {
-            if (playing === 0) {
-              setPlaying(playlist.length - 1);
-            } else {
-              setPlaying(playing - 1);
-            }
-          }}
-          className="prev-button"
-        >
-          {Icons.prev_btn}
-        </button>
-        <button
-          ref={playBtnRef}
-          onClick={handlePlayAudio}
-          className="play-button"
-        >
-          {audioState?.playing ? Icons.pause_btn : Icons.play_btn}
-        </button>
-        <button
-          onClick={() => {
-            if (playing === playlist.length - 1) {
-              setPlaying(0);
-            } else {
-              setPlaying(playing + 1);
-            }
-          }}
-          ref={nextBtnRef}
-          className="next-button"
-        >
-          {Icons.next_btn}
-        </button>
+        <div className="progress-btns">
+          <button
+            onClick={() => {
+              if (playing === 0) {
+                setPlaying(playlist.length - 1);
+              } else {
+                setPlaying(playing - 1);
+              }
+            }}
+            style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
+            className="prev-button"
+          >
+            {Icons.prev_btn}
+          </button>
+          <button
+            ref={playBtnRef}
+            onClick={handlePlayAudio}
+            className="play-button"
+          >
+            {audioState?.playing ? Icons.pause_btn : Icons.play_btn}
+          </button>
+          <button
+            onClick={() => {
+              if (playing === playlist.length - 1) {
+                setPlaying(0);
+              } else {
+                setPlaying(playing + 1);
+              }
+            }}
+            ref={nextBtnRef}
+            style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
+            className="next-button"
+          >
+            {Icons.next_btn}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -56,7 +56,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
         .startsWith(searchResult.trim()[0].toLowerCase())) ? (
     <div className="reciter-list">
       <div>
-        <p className={`${lang == "en" ? "en-font" : "ar-font"}`}>
+        <p className={`first-letter ${lang == "en" ? "en-font" : "ar-font"}`}>
           {firstLetter}
         </p>
         <hr />

@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "name": "QuranStream Extension",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["scripting"],
+  "host_permissions": ["https://*/*", "https://*/*"]
+}

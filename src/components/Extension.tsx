@@ -29,6 +29,7 @@ const Extension = () => {
     playing,
     playlist,
     qari,
+    pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
   const avaialbeReciters: JSX.Element[] = [];
@@ -39,7 +40,7 @@ const Extension = () => {
   const scrollOptions = {
     duration: 700,
     smooth: true,
-    offset: -120,
+    offset: pageWidth <= 800 ? -170 : -120,
   };
 
   useEffect(() => {

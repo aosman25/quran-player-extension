@@ -25,6 +25,7 @@ const Header = () => {
     searchResult,
     chooseReciter,
     setChooseReciter,
+    pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -99,9 +100,12 @@ const Header = () => {
                         String(
                           String(playlistRef.current[playingRef.current]["id"])
                         ),
-                        { ...scrollOptions, offset: -120 }
+                        {
+                          ...scrollOptions,
+                          offset: pageWidth <= 800 ? -170 : -120,
+                        }
                       );
-                    }, 1);
+                    }, 0.01);
                   }}
                 >
                   <FaHeadphonesAlt className="filter-icon" />

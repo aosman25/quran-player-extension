@@ -19,7 +19,9 @@ export interface GlobalStatesContext {
     notFound: boolean,
     setNotFound: React.Dispatch<React.SetStateAction<boolean>>,
     playOptions: PlayOptions ,
-    setPlayOptions: React.Dispatch<React.SetStateAction<PlayOptions>>
+    setPlayOptions: React.Dispatch<React.SetStateAction<PlayOptions>>,
+    pageWidth: number,
+    setPageWidth: React.Dispatch<React.SetStateAction<number>>
 }
 
 

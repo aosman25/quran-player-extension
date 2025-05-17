@@ -1,4 +1,5 @@
 @import "../colors";
+@import "../variables";
 .reciter-list {
     display: flex;
     flex-direction: column;
@@ -6,6 +7,7 @@
     p {
         font-weight: bold;
     }
+
 }
 .reciter-sublist {
     button {
@@ -26,4 +28,14 @@
         background-color: $teal;
         color: white;
     }
+}
+
+
+@media screen and (max-width: $width-breakpoint) {
+    .reciter-list {
+            .first-letter {
+        margin: 0 4px;
+    }
+    }
+
 }

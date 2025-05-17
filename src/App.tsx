@@ -12,6 +12,8 @@ import { useMemo } from "react";
 function App() {
   const [qari, setQari] = useState<number>(123); // Default Mishari Alafasi
   const [moshaf, setMoshaf] = useState<number>(1); // Default Moshaf
+  const [pageWidth, setPageWidth] = useState(window.innerWidth);
+
   const [loved, setLoved] = useState<boolean>(false);
   const [lang, setLang] = useState<"en" | "ar">("ar");
   const [playing, setPlaying] = useState<number>(0);
@@ -70,6 +72,7 @@ function App() {
   useEffect(() => {
     document.dir = lang == "en" ? "ltr" : "rtl";
   }, [lang]);
+
   return (
     <GlobalStates.Provider
       value={{
@@ -94,6 +97,8 @@ function App() {
         setNotFound,
         playOptions,
         setPlayOptions,
+        pageWidth,
+        setPageWidth,
       }}
     >
       <Extension />

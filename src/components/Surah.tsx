@@ -4,25 +4,33 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { GlobalStates } from "../GlobalStates";
 import { GlobalStatesContext } from "../types";
 import dayjs from "dayjs";
-
 import duration from "dayjs/plugin/duration";
 import { Icons } from "./Icons";
 
 dayjs.extend(duration);
 
 const Surah = ({ id, name }: SurahData) => {
-  const { playing, playlist, lang, playOptions, setPlayOptions, qari } =
-    useContext<GlobalStatesContext>(GlobalStates);
+  const {
+    playing,
+    playlist,
+    lang,
+    playOptions,
+    setPlayOptions,
+    qari,
+    setSearchResult,
+  } = useContext<GlobalStatesContext>(GlobalStates);
   const { setPlaying } = useContext<GlobalStatesContext>(GlobalStates);
   const onClick = () => {
-    setPlaying(playlist.findIndex(({ id: surahId }) => surahId == id));
+    const surahPlaying = playlist.findIndex(({ id: surahId }) => surahId == id);
+    setPlaying(surahPlaying);
+    setSearchResult("");
   };
   const [hovered, setHovered] = useState(false);
   const surahIndex = playlist.findIndex(({ id: surahId }) => surahId == id);
   const progressBarRef = useRef(null);
+
   useEffect(() => {
     if (progressBarRef.current && playOptions.duration) {
-      console.log(playOptions);
       const progressBar: HTMLElement = progressBarRef.current;
       const progress = (playOptions.currentTime / playOptions.duration) * 100;
 
