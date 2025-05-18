@@ -66,9 +66,24 @@ function App() {
     [surahsList, lang, moshaf]
   );
   const [playlist, setPlaylist] = useState<Play[]>(generatePlaylist(qari));
+  const extensionMode =
+    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
   useEffect(() => {
     setPlaylist(generatePlaylist(qari));
   }, [moshaf, qari, generatePlaylist]);
+  useEffect(() => {
+    if (extensionMode) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "extension-styles.css";
+      document.head.appendChild(link);
+
+      // Optional cleanup if needed
+      return () => {
+        document.head.removeChild(link);
+      };
+    }
+  }, []);
   useEffect(() => {
     document.dir = lang == "en" ? "ltr" : "rtl";
   }, [lang]);

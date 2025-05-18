@@ -19,6 +19,8 @@ const Player = () => {
   const loopStateRef = useRef<boolean>(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioVolumeRef = useRef<number>(60);
+  const extensionMode =
+    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
   const [audioState, setAudioState] = useState<{
     playing: boolean;
     duration: number;
@@ -44,6 +46,7 @@ const Player = () => {
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
+  const langRef = useRef<string>(lang);
 
   // Helper function to position pointer based on language
   const positionPointer = useCallback(
@@ -79,11 +82,28 @@ const Player = () => {
     });
 
     if (playingStateRef.current) {
-      audio.play();
+      if (extensionMode) {
+        chrome.runtime.sendMessage({
+          type: "PLAY_AUDIO",
+          src: audio.src,
+          startTime: audio.currentTime,
+          volume: audio.volume,
+        });
+        audio.muted = true;
+        audio.play();
+      } else {
+        audio.play();
+      }
       progress.style.width = "0";
       positionPointer(pointer, -5, isRtl);
     } else {
-      audio.pause();
+      if (extensionMode) {
+        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
+        audio.muted = true;
+        audio.pause();
+      } else {
+        audio.pause();
+      }
     }
   }, [lang, positionPointer]);
 
@@ -96,7 +116,13 @@ const Player = () => {
         clearInterval(intervalRef.current);
       }
       playingStateRef.current = false;
-      audio.pause();
+      if (extensionMode) {
+        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
+        audio.muted = true;
+        audio.pause();
+      } else {
+        audio.pause();
+      }
     } else {
       setNow((now) => now + 1);
       if (intervalRef.current) {
@@ -111,8 +137,18 @@ const Player = () => {
         });
       }, 1000);
       playingStateRef.current = true;
-
-      audio.play();
+      if (extensionMode) {
+        chrome.runtime.sendMessage({
+          type: "PLAY_AUDIO",
+          src: audio.src,
+          startTime: audio.currentTime,
+          volume: audio.volume,
+        });
+        audio.muted = true;
+        audio.play();
+      } else {
+        audio.play();
+      }
     }
 
     setAudioState({ ...audioState, playing: !audioState.playing });
@@ -164,7 +200,13 @@ const Player = () => {
 
       // Set new audio time
       audio.currentTime = (duration * audioProgress) / 100;
-      audio.pause();
+      if (extensionMode) {
+        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
+        audio.muted = true;
+        audio.pause();
+      } else {
+        audio.pause();
+      }
       setAudioState({ ...audioState, playing: false });
       setPlayOptions({
         playing: false,
@@ -225,7 +267,13 @@ const Player = () => {
       positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
       progressBar.style.transition = "none";
-      audio.pause();
+      if (extensionMode) {
+        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
+        audio.muted = true;
+        audio.pause();
+      } else {
+        audio.pause();
+      }
       setAudioState({ ...audioState, playing: false });
       setPlayOptions({
         playing: false,
@@ -338,6 +386,10 @@ const Player = () => {
 
     progress.style.transition = "none";
     pointer.style.transition = "none";
+    if (extensionMode && langRef.current === lang) {
+      chrome.runtime.sendMessage({ type: "STOP_AUDIO" });
+    }
+    langRef.current = lang;
     if (!audioState.playing) {
       playBtn.click();
     }
@@ -349,6 +401,7 @@ const Player = () => {
     const audio = audioRef.current;
     audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
+    chrome.runtime.sendMessage({ type: "CHANGE_VOLUME", volume: audio.volume });
   }, [audioVolume]);
 
   // Handle Pointer Reposition on Window Resize
@@ -504,7 +557,18 @@ const Player = () => {
 
             progress.style.transition = "none";
             pointer.style.transition = "none";
-            audio.play();
+            if (extensionMode) {
+              chrome.runtime.sendMessage({
+                type: "PLAY_AUDIO",
+                src: audio.src,
+                startTime: audio.currentTime,
+                volume: audio.volume,
+              });
+              audio.muted = true;
+              audio.play();
+            } else {
+              audio.play();
+            }
             setAudioState({ ...audioState });
           } else {
             nextBtn.click();
