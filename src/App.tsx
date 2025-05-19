@@ -10,20 +10,56 @@ import { SurahData } from "./types";
 import { useMemo } from "react";
 
 function App() {
-  const [qari, setQari] = useState<number>(123); // Default Mishari Alafasi
-  const [moshaf, setMoshaf] = useState<number>(1); // Default Moshaf
+  const extensionMode =
+    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
+  useEffect(() => {
+    if (extensionMode) {
+      const stored = localStorage.getItem("quranstream-extension");
+      if (!stored) {
+        localStorage.setItem(
+          "quranstream-extension",
+          JSON.stringify({
+            qari: 123,
+            moshaf: 1,
+            lang: "en",
+            playing: 0,
+            currentTime: 0,
+          })
+        );
+      }
+    }
+  }, []);
+  const stored = localStorage.getItem("quranstream-extension");
+  const extensionData = stored ? JSON.parse(stored) : {};
+  console.log(extensionData);
+  const [qari, setQari] = useState<number>(
+    extensionMode && "qari" in extensionData ? extensionData["qari"] : 123
+  ); // Default Mishari Alafasi
+  const [moshaf, setMoshaf] = useState<number>(
+    extensionMode && "moshaf" in extensionData ? extensionData["moshaf"] : 1
+  ); // Default Moshaf
   const [pageWidth, setPageWidth] = useState(window.innerWidth);
 
   const [loved, setLoved] = useState<boolean>(false);
-  const [lang, setLang] = useState<"en" | "ar">("ar");
-  const [playing, setPlaying] = useState<number>(0);
+  const [lang, setLang] = useState<"en" | "ar">(
+    extensionMode && "lang" in extensionData ? extensionData["lang"] : "ar"
+  );
+  const [playing, setPlaying] = useState<number>(
+    extensionMode && "paused" in extensionData ? extensionData["playing"] : 0
+  );
   const [searchResult, setSearchResult] = useState<string>("");
   const [chooseReciter, setChooseReciter] = useState<boolean>(false);
   const [notFound, setNotFound] = useState<boolean>(false);
   const [playOptions, setPlayOptions] = useState<PlayOptions>({
-    playing: false,
+    playing:
+      extensionMode && "paused" in extensionData
+        ? !extensionData["paused"]
+        : false,
     duration: 0,
-    currentTime: 0,
+    currentTime:
+      extensionMode && "currentTime" in extensionData
+        ? extensionData["currentTime"]
+        : 0,
   });
 
   const genrateSurahs = useCallback((): SurahData[] => {
@@ -66,24 +102,23 @@ function App() {
     [surahsList, lang, moshaf]
   );
   const [playlist, setPlaylist] = useState<Play[]>(generatePlaylist(qari));
-  const extensionMode =
-    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
-  useEffect(() => {
-    setPlaylist(generatePlaylist(qari));
-  }, [moshaf, qari, generatePlaylist]);
-  useEffect(() => {
-    if (extensionMode) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "extension-styles.css";
-      document.head.appendChild(link);
 
-      // Optional cleanup if needed
-      return () => {
-        document.head.removeChild(link);
-      };
+  useEffect(() => {
+    const newPlaylist = generatePlaylist(qari);
+    if (extensionMode) {
+      const stored = localStorage.getItem("quranstream-extension");
+      const extensionData = stored ? JSON.parse(stored) : {};
+      localStorage.setItem(
+        "quranstream-extension",
+        JSON.stringify({
+          ...extensionData,
+          playlist: newPlaylist,
+        })
+      );
     }
-  }, []);
+    setPlaylist(newPlaylist);
+  }, [moshaf, qari, generatePlaylist]);
+
   useEffect(() => {
     document.dir = lang == "en" ? "ltr" : "rtl";
   }, [lang]);
@@ -114,6 +149,7 @@ function App() {
         setPlayOptions,
         pageWidth,
         setPageWidth,
+        extensionMode,
       }}
     >
       <Extension />

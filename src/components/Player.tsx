@@ -46,7 +46,42 @@ const Player = () => {
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
-  const langRef = useRef<string>(lang);
+  const saveExtensionData = (audio: HTMLAudioElement) => {
+    const stored = localStorage.getItem("quranstream-extension");
+    const extensionData = stored ? JSON.parse(stored) : {};
+    localStorage.setItem(
+      "quranstream-extension",
+      JSON.stringify({
+        ...extensionData,
+        currentTime: audio.currentTime,
+        volume: audio.volume,
+        loop: loopStateRef.current,
+        paused: audioState?.playing,
+      })
+    );
+  };
+  const playAudio = (audio: HTMLAudioElement) => {
+    if (extensionMode) {
+      audio.muted = true;
+      audio.play();
+      saveExtensionData(audio);
+      chrome.runtime.sendMessage({
+        type: "PLAY_AUDIO",
+      });
+    } else {
+      audio.play();
+    }
+  };
+  const pauseAudio = (audio: HTMLAudioElement) => {
+    if (extensionMode) {
+      audio.muted = true;
+      audio.pause();
+      saveExtensionData(audio);
+      chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
+    } else {
+      audio.pause();
+    }
+  };
 
   // Helper function to position pointer based on language
   const positionPointer = useCallback(
@@ -82,28 +117,11 @@ const Player = () => {
     });
 
     if (playingStateRef.current) {
-      if (extensionMode) {
-        chrome.runtime.sendMessage({
-          type: "PLAY_AUDIO",
-          src: audio.src,
-          startTime: audio.currentTime,
-          volume: audio.volume,
-        });
-        audio.muted = true;
-        audio.play();
-      } else {
-        audio.play();
-      }
+      playAudio(audio);
       progress.style.width = "0";
       positionPointer(pointer, -5, isRtl);
     } else {
-      if (extensionMode) {
-        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-        audio.muted = true;
-        audio.pause();
-      } else {
-        audio.pause();
-      }
+      pauseAudio(audio);
     }
   }, [lang, positionPointer]);
 
@@ -116,13 +134,7 @@ const Player = () => {
         clearInterval(intervalRef.current);
       }
       playingStateRef.current = false;
-      if (extensionMode) {
-        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-        audio.muted = true;
-        audio.pause();
-      } else {
-        audio.pause();
-      }
+      pauseAudio(audio);
     } else {
       setNow((now) => now + 1);
       if (intervalRef.current) {
@@ -137,18 +149,7 @@ const Player = () => {
         });
       }, 1000);
       playingStateRef.current = true;
-      if (extensionMode) {
-        chrome.runtime.sendMessage({
-          type: "PLAY_AUDIO",
-          src: audio.src,
-          startTime: audio.currentTime,
-          volume: audio.volume,
-        });
-        audio.muted = true;
-        audio.play();
-      } else {
-        audio.play();
-      }
+      playAudio(audio);
     }
 
     setAudioState({ ...audioState, playing: !audioState.playing });
@@ -200,13 +201,7 @@ const Player = () => {
 
       // Set new audio time
       audio.currentTime = (duration * audioProgress) / 100;
-      if (extensionMode) {
-        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-        audio.muted = true;
-        audio.pause();
-      } else {
-        audio.pause();
-      }
+      pauseAudio(audio);
       setAudioState({ ...audioState, playing: false });
       setPlayOptions({
         playing: false,
@@ -267,13 +262,7 @@ const Player = () => {
       positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
       progressBar.style.transition = "none";
-      if (extensionMode) {
-        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-        audio.muted = true;
-        audio.pause();
-      } else {
-        audio.pause();
-      }
+      pauseAudio(audio);
       setAudioState({ ...audioState, playing: false });
       setPlayOptions({
         playing: false,
@@ -366,7 +355,8 @@ const Player = () => {
       !pointerRef.current ||
       !progressRef.current ||
       !audioState ||
-      !playBtnRef.current
+      !playBtnRef.current ||
+      !audioRef.current
     )
       return;
     const pointer = pointerRef.current;
@@ -386,10 +376,9 @@ const Player = () => {
 
     progress.style.transition = "none";
     pointer.style.transition = "none";
-    if (extensionMode && langRef.current === lang) {
-      chrome.runtime.sendMessage({ type: "STOP_AUDIO" });
+    if (extensionMode) {
+      saveExtensionData(audioRef.current);
     }
-    langRef.current = lang;
     if (!audioState.playing) {
       playBtn.click();
     }
@@ -401,7 +390,12 @@ const Player = () => {
     const audio = audioRef.current;
     audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
-    chrome.runtime.sendMessage({ type: "CHANGE_VOLUME", volume: audio.volume });
+    if (extensionMode) {
+      chrome.runtime.sendMessage({
+        type: "CHANGE_VOLUME",
+        volume: audio.volume,
+      });
+    }
   }, [audioVolume]);
 
   // Handle Pointer Reposition on Window Resize
@@ -557,18 +551,7 @@ const Player = () => {
 
             progress.style.transition = "none";
             pointer.style.transition = "none";
-            if (extensionMode) {
-              chrome.runtime.sendMessage({
-                type: "PLAY_AUDIO",
-                src: audio.src,
-                startTime: audio.currentTime,
-                volume: audio.volume,
-              });
-              audio.muted = true;
-              audio.play();
-            } else {
-              audio.play();
-            }
+            playAudio(audio);
             setAudioState({ ...audioState });
           } else {
             nextBtn.click();
@@ -704,8 +687,31 @@ const Player = () => {
           <button
             onClick={() => {
               if (playing === 0) {
+                if (extensionMode) {
+                  const stored = localStorage.getItem("quranstream-extension");
+                  const extensionData = stored ? JSON.parse(stored) : {};
+                  localStorage.setItem(
+                    "quranstream-extension",
+                    JSON.stringify({
+                      ...extensionData,
+                      playing: playlist.length - 1,
+                    })
+                  );
+                }
+
                 setPlaying(playlist.length - 1);
               } else {
+                if (extensionMode) {
+                  const stored = localStorage.getItem("quranstream-extension");
+                  const extensionData = stored ? JSON.parse(stored) : {};
+                  localStorage.setItem(
+                    "quranstream-extension",
+                    JSON.stringify({
+                      ...extensionData,
+                      playing: playing - 1,
+                    })
+                  );
+                }
                 setPlaying(playing - 1);
               }
             }}
@@ -724,8 +730,30 @@ const Player = () => {
           <button
             onClick={() => {
               if (playing === playlist.length - 1) {
+                if (extensionMode) {
+                  const stored = localStorage.getItem("quranstream-extension");
+                  const extensionData = stored ? JSON.parse(stored) : {};
+                  localStorage.setItem(
+                    "quranstream-extension",
+                    JSON.stringify({
+                      ...extensionData,
+                      playing: 0,
+                    })
+                  );
+                }
                 setPlaying(0);
               } else {
+                if (extensionMode) {
+                  const stored = localStorage.getItem("quranstream-extension");
+                  const extensionData = stored ? JSON.parse(stored) : {};
+                  localStorage.setItem(
+                    "quranstream-extension",
+                    JSON.stringify({
+                      ...extensionData,
+                      playing: playing + 1,
+                    })
+                  );
+                }
                 setPlaying(playing + 1);
               }
             }}

@@ -8,19 +8,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "offscreen_documents": [
-    {
-      "matches": ["<all_urls>"],
-      "reason": "AUDIO_PLAYBACK",
-      "use_dynamic_url": true
-    }
-  ],
   "permissions": ["scripting", "storage", "offscreen"],
-  "host_permissions": ["https://*/*", "https://*/*"],
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "css": ["extension-styles.css"]
-    }
-  ]
+  "host_permissions": ["https://*/*", "https://*/*"]
 }

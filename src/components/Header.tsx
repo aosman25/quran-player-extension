@@ -26,6 +26,7 @@ const Header = () => {
     chooseReciter,
     setChooseReciter,
     pageWidth,
+    extensionMode,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -76,7 +77,21 @@ const Header = () => {
           />
           <p
             className={`lang-switch  ${lang == "ar" ? "en-font" : "ar-font"}`}
-            onClick={() => setLang(lang == "en" ? "ar" : "en")}
+            onClick={() => {
+              const newLang = lang == "en" ? "ar" : "en";
+              setLang(newLang);
+              if (extensionMode) {
+                const stored = localStorage.getItem("quranstream-extension");
+                const extensionData = stored ? JSON.parse(stored) : {};
+                localStorage.setItem(
+                  "quranstream-extension",
+                  JSON.stringify({
+                    ...extensionData,
+                    lang: newLang,
+                  })
+                );
+              }
+            }}
           >
             {lang == "en" ? "عربي" : "English"}
           </p>
@@ -222,6 +237,22 @@ const Header = () => {
                                   onClick={() => {
                                     if (index !== moshaf) {
                                       setMoshaf(index);
+                                      if (extensionMode) {
+                                        const stored = localStorage.getItem(
+                                          "quranstream-extension"
+                                        );
+                                        const extensionData = stored
+                                          ? JSON.parse(stored)
+                                          : {};
+                                        localStorage.setItem(
+                                          "quranstream-extension",
+                                          JSON.stringify({
+                                            ...extensionData,
+                                            moshaf: index,
+                                            playing: 0,
+                                          })
+                                        );
+                                      }
                                       setPlaying(0);
                                     }
                                     setChangeMoshaf(false);
