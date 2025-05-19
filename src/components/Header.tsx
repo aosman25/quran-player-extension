@@ -249,6 +249,7 @@ const Header = () => {
                                           JSON.stringify({
                                             ...extensionData,
                                             moshaf: index,
+                                            currentTime: 0,
                                             playing: 0,
                                           })
                                         );

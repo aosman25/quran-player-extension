@@ -32,6 +32,7 @@ const Surah = ({ id, name }: SurahData) => {
         JSON.stringify({
           ...extensionData,
           playing: surahPlaying,
+          currentTime: 0,
         })
       );
     }

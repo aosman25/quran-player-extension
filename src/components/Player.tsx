@@ -9,18 +9,26 @@ import { Icons } from "./Icons";
 
 dayjs.extend(duration);
 const Player = () => {
+  const extensionMode =
+    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
+  const stored = localStorage.getItem("quranstream-extension");
+  const extensionData = stored ? JSON.parse(stored) : {};
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const playBtnRef = useRef<HTMLButtonElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
-  const playingStateRef = useRef<boolean>(false);
-  const loopStateRef = useRef<boolean>(false);
+  const playingStateRef = useRef<boolean>(
+    extensionMode && "paused" in extensionData ? !extensionData.paused : false
+  );
+  const loopStateRef = useRef<boolean>(
+    extensionMode && "loop" in extensionData ? extensionData.loop : false
+  );
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioVolumeRef = useRef<number>(60);
-  const extensionMode =
-    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
+  const audioVolumeRef = useRef<number>(
+    extensionMode && "volume" in extensionData ? extensionData.volume * 100 : 60
+  );
   const [audioState, setAudioState] = useState<{
     playing: boolean;
     duration: number;
@@ -46,6 +54,10 @@ const Player = () => {
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
+  const extensionInitializedRef = useRef<boolean>(false);
+  const audioInitializedRef = useRef<boolean>(
+    !extensionData.paused ? false : true
+  );
   const saveExtensionData = (audio: HTMLAudioElement) => {
     const stored = localStorage.getItem("quranstream-extension");
     const extensionData = stored ? JSON.parse(stored) : {};
@@ -53,28 +65,27 @@ const Player = () => {
       "quranstream-extension",
       JSON.stringify({
         ...extensionData,
+        paused: !playingStateRef.current,
         currentTime: audio.currentTime,
-        volume: audio.volume,
-        loop: loopStateRef.current,
-        paused: audioState?.playing,
       })
     );
   };
   const playAudio = (audio: HTMLAudioElement) => {
     if (extensionMode) {
-      audio.muted = true;
       audio.play();
       saveExtensionData(audio);
-      chrome.runtime.sendMessage({
-        type: "PLAY_AUDIO",
-      });
+      if (audioInitializedRef.current) {
+        chrome.runtime.sendMessage({
+          type: "PLAY_AUDIO",
+        });
+      }
+      audioInitializedRef.current = true;
     } else {
       audio.play();
     }
   };
   const pauseAudio = (audio: HTMLAudioElement) => {
     if (extensionMode) {
-      audio.muted = true;
       audio.pause();
       saveExtensionData(audio);
       chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
@@ -101,7 +112,25 @@ const Player = () => {
   const onMetaDataLoad = useCallback(() => {
     if (!audioRef.current || !progressRef.current || !pointerRef.current)
       return;
+
     const audio = audioRef.current;
+
+    if (extensionMode && !extensionInitializedRef.current) {
+      const stored = localStorage.getItem("quranstream-extension");
+      const extensionData = stored ? JSON.parse(stored) : {};
+      audio.currentTime = extensionMode ? extensionData.currentTime : 0;
+      if (!extensionData.paused) {
+        intervalRef.current = setInterval(() => {
+          setNow((now) => now + 1);
+          setPlayOptions({
+            playing: playingStateRef.current,
+            currentTime: audio.currentTime,
+            duration: audio.duration,
+          });
+        }, 1000);
+      }
+      extensionInitializedRef.current = true;
+    }
     const progress = progressRef.current;
     const pointer = pointerRef.current;
     const isRtl = lang === "ar";
@@ -152,7 +181,7 @@ const Player = () => {
       playAudio(audio);
     }
 
-    setAudioState({ ...audioState, playing: !audioState.playing });
+    setAudioState({ ...audioState, playing: playingStateRef.current });
     setPlayOptions({
       playing: !audioState.playing,
       currentTime: audio.currentTime,
@@ -391,6 +420,16 @@ const Player = () => {
     audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
     if (extensionMode) {
+      const stored = localStorage.getItem("quranstream-extension");
+      const extensionData = stored ? JSON.parse(stored) : {};
+      localStorage.setItem(
+        "quranstream-extension",
+        JSON.stringify({
+          ...extensionData,
+          volume: audio.volume,
+        })
+      );
+
       chrome.runtime.sendMessage({
         type: "CHANGE_VOLUME",
         volume: audio.volume,
@@ -522,6 +561,7 @@ const Player = () => {
         ref={audioRef}
         src={playlist[playing].src}
         onLoadedMetadata={onMetaDataLoad}
+        muted={extensionMode}
         onEnded={() => {
           if (
             !audioRef.current ||
@@ -610,6 +650,17 @@ const Player = () => {
       <div className="controls">
         <button
           onClick={() => {
+            if (extensionMode) {
+              const stored = localStorage.getItem("quranstream-extension");
+              const extensionData = stored ? JSON.parse(stored) : {};
+              localStorage.setItem(
+                "quranstream-extension",
+                JSON.stringify({
+                  ...extensionData,
+                  loop: !loopStateRef.current,
+                })
+              );
+            }
             setLoop(!loopStateRef.current);
             loopStateRef.current = !loopStateRef.current;
           }}
@@ -695,6 +746,7 @@ const Player = () => {
                     JSON.stringify({
                       ...extensionData,
                       playing: playlist.length - 1,
+                      currentTime: 0,
                     })
                   );
                 }
@@ -709,6 +761,7 @@ const Player = () => {
                     JSON.stringify({
                       ...extensionData,
                       playing: playing - 1,
+                      currentTime: 0,
                     })
                   );
                 }
@@ -738,6 +791,7 @@ const Player = () => {
                     JSON.stringify({
                       ...extensionData,
                       playing: 0,
+                      currentTime: 0,
                     })
                   );
                 }
@@ -751,6 +805,7 @@ const Player = () => {
                     JSON.stringify({
                       ...extensionData,
                       playing: playing + 1,
+                      currentTime: 0,
                     })
                   );
                 }

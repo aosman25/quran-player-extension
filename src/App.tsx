@@ -15,7 +15,18 @@ function App() {
   useEffect(() => {
     if (extensionMode) {
       const stored = localStorage.getItem("quranstream-extension");
-      if (!stored) {
+      if (
+        !stored ||
+        (stored &&
+          (!("qari" in JSON.parse(stored)) ||
+            !("moshaf" in JSON.parse(stored)) ||
+            !("lang" in JSON.parse(stored)) ||
+            !("playing" in JSON.parse(stored)) ||
+            !("currentTime" in JSON.parse(stored)) ||
+            !("paused" in JSON.parse(stored)) ||
+            !("volume" in JSON.parse(stored)) ||
+            !("loop" in JSON.parse(stored))))
+      ) {
         localStorage.setItem(
           "quranstream-extension",
           JSON.stringify({
@@ -24,6 +35,9 @@ function App() {
             lang: "en",
             playing: 0,
             currentTime: 0,
+            paused: true,
+            volume: 0.6,
+            loop: false,
           })
         );
       }
@@ -45,7 +59,7 @@ function App() {
     extensionMode && "lang" in extensionData ? extensionData["lang"] : "ar"
   );
   const [playing, setPlaying] = useState<number>(
-    extensionMode && "paused" in extensionData ? extensionData["playing"] : 0
+    extensionMode && "playing" in extensionData ? extensionData["playing"] : 0
   );
   const [searchResult, setSearchResult] = useState<string>("");
   const [chooseReciter, setChooseReciter] = useState<boolean>(false);

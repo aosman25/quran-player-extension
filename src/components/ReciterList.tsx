@@ -52,6 +52,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
                   ...extensionData,
                   playing: 0,
                   moshaf: 0,
+                  currentTime: 0,
                   qari: id,
                 })
               );
