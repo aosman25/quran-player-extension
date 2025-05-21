@@ -132,13 +132,18 @@
         .brand-name {
             font-size: 25px;
         }
-    }
-    
-    .filter-container {
+            .filter-container {
         margin: 5px;
         display: flex;
         flex-direction: column;
+        button:hover {
+            transform: scale(1);
+        }
+
     }
+    }
+    
+
     .filter-btn-container {
   .mohafs-main-container {
             grid-template-columns: 1fr 250px 1fr;
@@ -147,3 +152,4 @@
     }
   
 }
+

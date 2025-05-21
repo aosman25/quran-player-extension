@@ -40,7 +40,7 @@ const Extension = () => {
   const scrollOptions = {
     duration: 700,
     smooth: true,
-    offset: pageWidth <= 800 ? -170 : -120,
+    offset: pageWidth <= 800 ? -165 : -120,
   };
 
   useEffect(() => {
@@ -74,6 +74,7 @@ const Extension = () => {
       clearTimeout(scrollTimeout.current as number);
     };
   }, []);
+
   useEffect(() => {
     scroller.scrollTo(
       String(String(playlistRef.current[playingRef.current]["id"])),

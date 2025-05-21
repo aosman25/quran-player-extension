@@ -411,7 +411,33 @@ const Player = () => {
     if (!audioState.playing) {
       playBtn.click();
     }
-  }, [playing, qari, moshaf, lang]);
+  }, [playing, qari, moshaf]);
+  useEffect(() => {
+    if (
+      !pointerRef.current ||
+      !progressRef.current ||
+      !audioState ||
+      !playBtnRef.current ||
+      !audioRef.current
+    )
+      return;
+    const pointer = pointerRef.current;
+    const progress = progressRef.current;
+    const isRtl = lang === "ar";
+
+    progress.style.width = "0";
+
+    if (isRtl) {
+      pointer.style.right = `-5px`;
+      pointer.style.left = "auto";
+    } else {
+      pointer.style.left = `-5px`;
+      pointer.style.right = "auto";
+    }
+
+    progress.style.transition = "none";
+    pointer.style.transition = "none";
+  }, [lang]);
 
   // Change the volume on slider move
   useEffect(() => {
@@ -727,7 +753,7 @@ const Player = () => {
             sx={() => ({
               color: "#686868",
             })}
-            valueLabelDisplay="auto"
+            valueLabelDisplay="off"
             value={audioVolume}
             onChange={(_, newVolume) => {
               setAudioVolume(newVolume as number);

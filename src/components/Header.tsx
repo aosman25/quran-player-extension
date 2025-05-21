@@ -117,7 +117,7 @@ const Header = () => {
                         ),
                         {
                           ...scrollOptions,
-                          offset: pageWidth <= 800 ? -170 : -120,
+                          offset: pageWidth <= 800 ? -165 : -120,
                         }
                       );
                     }, 0.01);
