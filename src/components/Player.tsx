@@ -47,6 +47,8 @@ const Player = () => {
     qari,
     moshaf,
     setPageWidth,
+    isLoading,
+    setIsLoading,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,7 +154,10 @@ const Player = () => {
     } else {
       pauseAudio(audio);
     }
-  }, [lang, positionPointer]);
+
+    // Clear loading state once metadata is loaded and ready to play
+    setIsLoading(false);
+  }, [lang, positionPointer, extensionMode]);
 
   // Handle play/pause audio
   const handlePlayAudio = useCallback(() => {
@@ -198,9 +203,13 @@ const Player = () => {
         !progressRef.current ||
         !audioRef.current ||
         !audioState ||
-        !playBtnRef.current
-      )
+        !playBtnRef.current ||
+        !audioRef.current.duration
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
         return;
+      }
 
       const pointer = pointerRef.current;
       const container = containerRef.current;
@@ -311,6 +320,23 @@ const Player = () => {
     [audioState, isDragging, lang, positionPointer]
   );
 
+  // Reset progress bar when switching tracks
+  useEffect(() => {
+    if (!progressRef.current || !pointerRef.current) return;
+    const progress = progressRef.current;
+    const pointer = pointerRef.current;
+    const isRtl = lang === "ar";
+
+    // Immediately reset progress and pointer without transition
+    progress.style.transition = "none";
+    pointer.style.transition = "none";
+    progress.style.width = "0";
+    positionPointer(pointer, -5, isRtl);
+
+    // Force a reflow to ensure the "none" transition takes effect
+    void progress.offsetHeight;
+  }, [playlist[playing].src, lang, positionPointer]);
+
   // Update progress bar and pointer position
   useEffect(() => {
     if (
@@ -328,12 +354,19 @@ const Player = () => {
     const container = containerRef.current;
     const isRtl = lang === "ar";
 
+    // Only update if we have valid duration
+    if (!audio.duration) {
+      progress.style.width = "0";
+      positionPointer(pointer, -5, isRtl);
+      return;
+    }
+
     const timeRemaining = (audio.duration - audio.currentTime) * 1000;
     const currentProgress = audio.currentTime / audio.duration;
     const containerRect = container.getBoundingClientRect();
     const maxX = containerRect.width;
 
-    if (audioState.playing) {
+    if (audioState.playing && !audio.paused && audio.readyState >= 3) {
       progress.style.width = "100%";
       progress.style.transition = `width ${timeRemaining}ms linear`;
 
@@ -364,6 +397,7 @@ const Player = () => {
     // Cleanup
     return () => {
       progress.style.transition = "none";
+      pointer.style.transition = "none";
     };
   }, [audioState, lang]);
 
@@ -581,6 +615,111 @@ const Player = () => {
       playBtnRef.current.click();
     }
   }, [playOptions?.playing]);
+
+  // Set loading state when src changes
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    // Show loading immediately when switching tracks while playing
+    if (!audioRef.current.paused || playingStateRef.current) {
+      setIsLoading(true);
+    }
+  }, [playlist[playing].src]);
+
+  // Add waiting and playing event handlers
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    let loadingTimeout: ReturnType<typeof setTimeout>;
+
+    const handleWaiting = () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      loadingTimeout = setTimeout(() => {
+        if (!audio.paused && audio.readyState < 3) {
+          setIsLoading(true);
+        }
+      }, 500);
+    };
+
+    const handlePlaying = () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      setIsLoading(false);
+    };
+
+    const handleLoadStart = () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      if (!audio.paused || playingStateRef.current) {
+        setIsLoading(true);
+      }
+    };
+
+    const handleCanPlay = () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      setIsLoading(false);
+    };
+
+    const handlePause = () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      // Only clear loading if we're not in the middle of loading
+      if (audio.readyState >= 3) {
+        setIsLoading(false);
+      }
+    };
+
+    const handleError = () => {
+      // Only show loading if we're trying to play and there's no network
+      if (!navigator.onLine && (playingStateRef.current || !audio.paused)) {
+        setIsLoading(true);
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    // Handle network status changes
+    const handleOnline = () => {
+      if (audio.error || audio.readyState < 3) {
+        audio.load();
+        if (playingStateRef.current || !audio.paused) {
+          setIsLoading(true);
+          playAudio(audio);
+        }
+      }
+    };
+
+    const handleOffline = () => {
+      // Keep showing loading if we're trying to play
+      if (playingStateRef.current || !audio.paused) {
+        setIsLoading(true);
+      }
+    };
+
+    audio.addEventListener("waiting", handleWaiting);
+    audio.addEventListener("playing", handlePlaying);
+    audio.addEventListener("loadstart", handleLoadStart);
+    audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("pause", handlePause);
+    audio.addEventListener("error", handleError);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // Initial network check
+    if (!navigator.onLine && (playingStateRef.current || !audio.paused)) {
+      setIsLoading(true);
+    }
+
+    return () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      audio.removeEventListener("waiting", handleWaiting);
+      audio.removeEventListener("playing", handlePlaying);
+      audio.removeEventListener("loadstart", handleLoadStart);
+      audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("pause", handlePause);
+      audio.removeEventListener("error", handleError);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [setIsLoading]);
+
   return (
     <div ref={playerRef} className="player">
       <audio
@@ -588,6 +727,13 @@ const Player = () => {
         src={playlist[playing].src}
         onLoadedMetadata={onMetaDataLoad}
         muted={extensionMode}
+        onError={() => {
+          // Additional error handling for the audio element
+          setIsLoading(false);
+          if (navigator.onLine && audioRef.current) {
+            audioRef.current.load();
+          }
+        }}
         onEnded={() => {
           if (
             !audioRef.current ||
@@ -630,44 +776,53 @@ const Player = () => {
       </div>
       <div className="progress">
         <div className="timestamp en-font">
-          <p>
-            <span className="start-timestamp">
-              {audioRef.current
-                ? (() => {
-                    const currentTime = dayjs.duration(
-                      audioRef.current.currentTime,
-                      "seconds"
-                    );
-                    return currentTime.format("HH:mm:ss");
-                  })()
-                : "00:00:00"}
-            </span>
-            <span> / </span>
-            <span className="end-timestamp">
-              {" "}
-              {audioRef.current
-                ? (() => {
-                    const duration = dayjs.duration(
-                      audioRef.current.duration,
-                      "seconds"
-                    );
-                    return audioRef.current.duration
-                      ? duration.format("HH:mm:ss")
-                      : "00:00:00";
-                  })()
-                : "00:00:00"}
-            </span>
-          </p>
+          {audioRef.current && audioRef.current.duration ? (
+            <p>
+              <span className="start-timestamp">
+                {(() => {
+                  const currentTime = dayjs.duration(
+                    audioRef.current.currentTime,
+                    "seconds"
+                  );
+                  return currentTime.format("HH:mm:ss");
+                })()}
+              </span>
+              <span> / </span>
+              <span className="end-timestamp">
+                {" "}
+                {(() => {
+                  const duration = dayjs.duration(
+                    audioRef.current.duration,
+                    "seconds"
+                  );
+                  return duration.format("HH:mm:ss");
+                })()}
+              </span>
+            </p>
+          ) : null}
         </div>
         <div
           ref={containerRef}
           onClick={onMouseClick}
+          style={{
+            cursor:
+              audioState && audioRef.current?.duration ? "pointer" : "default",
+            opacity: audioState && audioRef.current?.duration ? 1 : 0.5,
+          }}
           className={`bar-container ${lang === "ar" ? "rtl" : "ltr"}`}
         >
           <div
             ref={pointerRef}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseUp={() => setIsDragging(false)}
+            onMouseDown={() =>
+              audioState && audioRef.current?.duration && setIsDragging(true)
+            }
+            onMouseUp={() =>
+              audioState && audioRef.current?.duration && setIsDragging(false)
+            }
+            style={{
+              display:
+                audioState && audioRef.current?.duration ? "block" : "none",
+            }}
             className="pointer"
           ></div>
           <div ref={progressRef} className="progress-bar"></div>
@@ -801,10 +956,24 @@ const Player = () => {
           </button>
           <button
             ref={playBtnRef}
-            onClick={handlePlayAudio}
+            onClick={
+              isLoading
+                ? (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                : handlePlayAudio
+            }
             className="play-button"
+            style={{ pointerEvents: isLoading ? "none" : "auto" }}
           >
-            {audioState?.playing ? Icons.pause_btn : Icons.play_btn}
+            {isLoading ? (
+              <div className="spinner" />
+            ) : audioState?.playing ? (
+              Icons.pause_btn
+            ) : (
+              Icons.play_btn
+            )}
           </button>
           <button
             onClick={() => {

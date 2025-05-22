@@ -18,6 +18,7 @@ const Surah = ({ id, name }: SurahData) => {
     setPlayOptions,
     qari,
     setSearchResult,
+    isLoading,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const { setPlaying, extensionMode } =
     useContext<GlobalStatesContext>(GlobalStates);
@@ -41,6 +42,26 @@ const Surah = ({ id, name }: SurahData) => {
   const [hovered, setHovered] = useState(false);
   const surahIndex = playlist.findIndex(({ id: surahId }) => surahId == id);
   const progressBarRef = useRef(null);
+  const [showTimestamps, setShowTimestamps] = useState(false);
+
+  // Handle timestamp visibility
+  useEffect(() => {
+    if (playing === surahIndex) {
+      // Hide timestamps immediately when switching
+      setShowTimestamps(false);
+
+      // Show timestamps only when we have duration and not loading
+      const timer = setTimeout(() => {
+        if (playOptions.duration && !isLoading) {
+          setShowTimestamps(true);
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowTimestamps(false);
+    }
+  }, [playing, surahIndex, playOptions.duration, isLoading]);
 
   useEffect(() => {
     if (progressBarRef.current && playOptions.duration) {
@@ -69,6 +90,7 @@ const Surah = ({ id, name }: SurahData) => {
     playOptions.playing,
     qari,
   ]);
+
   return (
     <>
       <div
@@ -93,7 +115,17 @@ const Surah = ({ id, name }: SurahData) => {
                 }
                 className="icon-btn"
               >
-                {Icons.pause_btn}
+                {isLoading ? (
+                  <div
+                    className="spinner"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  />
+                ) : (
+                  Icons.pause_btn
+                )}
               </button>
             ) : (
               <button
@@ -120,25 +152,30 @@ const Surah = ({ id, name }: SurahData) => {
           {name[lang as keyof typeof name]}
         </div>
 
-        {playing == surahIndex ? (
+        {playing == surahIndex && showTimestamps ? (
           <div className="en-font">
-            <span className="start-timestamp">
-              {" "}
-              {(() => {
-                const currentTime = dayjs.duration(
-                  playOptions.currentTime,
-                  "seconds"
-                );
-                return currentTime.format("HH:mm:ss");
-              })()}
-            </span>{" "}
-            /{" "}
-            {(() => {
-              const duration = dayjs.duration(playOptions.duration, "seconds");
-              return playOptions.duration
-                ? duration.format("HH:mm:ss")
-                : "00:00:00";
-            })()}
+            {playOptions.duration ? (
+              <>
+                <span className="start-timestamp">
+                  {" "}
+                  {(() => {
+                    const currentTime = dayjs.duration(
+                      playOptions.currentTime,
+                      "seconds"
+                    );
+                    return currentTime.format("HH:mm:ss");
+                  })()}
+                </span>{" "}
+                /{" "}
+                {(() => {
+                  const duration = dayjs.duration(
+                    playOptions.duration,
+                    "seconds"
+                  );
+                  return duration.format("HH:mm:ss");
+                })()}
+              </>
+            ) : null}
           </div>
         ) : null}
       </div>

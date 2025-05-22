@@ -75,6 +75,8 @@ function App() {
         : 0,
   });
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
     const availableSurahs =
@@ -163,6 +165,8 @@ function App() {
         pageWidth,
         setPageWidth,
         extensionMode,
+        isLoading,
+        setIsLoading,
       }}
     >
       <Extension />

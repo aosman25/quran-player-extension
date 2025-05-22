@@ -22,7 +22,9 @@ export interface GlobalStatesContext {
     setPlayOptions: React.Dispatch<React.SetStateAction<PlayOptions>>,
     pageWidth: number,
     setPageWidth: React.Dispatch<React.SetStateAction<number>>,
-    extensionMode: boolean
+    extensionMode: boolean,
+    isLoading: boolean,
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 
