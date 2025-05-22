@@ -9,7 +9,23 @@ async function ensureOffscreenDocument() {
   }
 }
 
+chrome.windows.onRemoved.addListener(async () => {
+  const windows = await chrome.windows.getAll();
+  if (windows.length === 0) {
+    await chrome.runtime.sendMessage({
+      type: "STOP_AUDIO",
+    });
+  }
+});
+
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   await ensureOffscreenDocument();
   chrome.runtime.sendMessage(message); // forward to offscreen
+});
+
+// This part handles browser/service worker shutdown
+chrome.runtime.onSuspend.addListener(() => {
+  chrome.runtime.sendMessage({
+    type: "STOP_AUDIO",
+  });
 });

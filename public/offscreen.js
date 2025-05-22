@@ -74,5 +74,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         currentTime: audio.currentTime,
       })
     );
+  } else if (message.type === "STOP_AUDIO" && audio) {
+    audio.pause();
+    const extensionData = JSON.parse(
+      localStorage.getItem("quranstream-extension")
+    );
+    localStorage.setItem(
+      "quranstream-extension",
+      JSON.stringify({
+        ...extensionData,
+        currentTime: audio.currentTime,
+        paused: true,
+      })
+    );
+    audio = null;
   }
 });

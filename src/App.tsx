@@ -45,7 +45,6 @@ function App() {
   }, []);
   const stored = localStorage.getItem("quranstream-extension");
   const extensionData = stored ? JSON.parse(stored) : {};
-  console.log(extensionData);
   const [qari, setQari] = useState<number>(
     extensionMode && "qari" in extensionData ? extensionData["qari"] : 123
   ); // Default Mishari Alafasi
