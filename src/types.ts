@@ -24,7 +24,8 @@ export interface GlobalStatesContext {
     setPageWidth: React.Dispatch<React.SetStateAction<number>>,
     extensionMode: boolean,
     isLoading: boolean,
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    isScrolling: boolean,
 }
 
 

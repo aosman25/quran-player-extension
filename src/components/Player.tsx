@@ -892,7 +892,7 @@ const Player = () => {
             );
           }}
           style={{
-            opacity: hoverVolume ? 1 : 0,
+            opacity: 1,
             visibility: hoverVolume ? "visible" : "hidden",
             animation: hoverVolume ? "growShrink 300ms ease-in-out" : "none",
             transition: hoverVolume

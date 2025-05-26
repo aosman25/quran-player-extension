@@ -27,6 +27,7 @@ const Header = () => {
     setChooseReciter,
     pageWidth,
     extensionMode,
+    isScrolling,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -100,7 +101,13 @@ const Header = () => {
           {chooseReciter ? (
             <div className="filter-btn-container">
               <Tooltip
-                title={lang == "en" ? "Change Surah" : "غيّر السورة"}
+                title={
+                  isScrolling
+                    ? ""
+                    : lang == "en"
+                    ? "Change Surah"
+                    : "غيّر السورة"
+                }
                 arrow
               >
                 <button
@@ -147,9 +154,18 @@ const Header = () => {
             </div>
           ) : (
             <>
-              <div className="filter-btn-container">
+              <div
+                style={{ position: "relative" }}
+                className="filter-btn-container"
+              >
                 <Tooltip
-                  title={lang == "en" ? "Change Reciter" : "غيّر القارئ"}
+                  title={
+                    isScrolling
+                      ? ""
+                      : lang == "en"
+                      ? "Change Reciter"
+                      : "غيّر القارئ"
+                  }
                   arrow
                 >
                   <button

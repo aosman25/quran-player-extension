@@ -188,16 +188,16 @@
             transition: opacity 150ms ease-in;
         }
         .volume-panel-wrapper-ltr {
-            left: 18px;
+            left: 12px;
         }
         .volume-panel-wrapper-rtl {
-            right: 18px;
+            right: 12px;
         }
         .volume-panel-wrapper::before {
             content: "";
             position: absolute;
             bottom: -7px; /* Adjust to position below the main box */
-            left: 11px; /* Adjust to align with the box */
+            left: 16px; /* Adjust to align with the box */
             width: 0;
             height: 0;
             border-left: 10px solid transparent;
@@ -256,6 +256,12 @@
         }
         .loop-button {
             order: 3;
+        }
+        .volume-panel-wrapper-ltr {
+            left: 3%;
+        }
+        .volume-panel-wrapper-rtl {
+            right: 3%;
         }
     }
     }

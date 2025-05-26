@@ -31,25 +31,29 @@ const Extension = () => {
     qari,
     pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
+  console.log(pageWidth);
   const availableSurahs: JSX.Element[] = [];
   const avaialbeReciters: JSX.Element[] = [];
   const scrollTimeout = useRef<number | null>(null);
   const playingRef = useRef<number>(playing);
   const playlistRef = useRef<Play[]>(playlist);
+  const offsetRef = useRef<number>(pageWidth <= 800 ? -165 : -120);
   const surahsListContainerRef = useRef(null);
   const scrollOptions = {
     duration: 700,
     smooth: true,
     offset: pageWidth <= 800 ? -165 : -120,
   };
-
+  useEffect(() => {
+    offsetRef.current = pageWidth <= 800 ? -165 : -120;
+  }, [pageWidth]);
   useEffect(() => {
     const handleScroll = () => {
       clearTimeout(scrollTimeout.current as number);
       scrollTimeout.current = setTimeout(() => {
         scroller.scrollTo(
           String(String(playlistRef.current[playingRef.current]["id"])),
-          scrollOptions
+          { ...scrollOptions, offset: offsetRef.current }
         );
       }, 3500);
     };

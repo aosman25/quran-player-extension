@@ -2,7 +2,7 @@ import "./styles/index.scss";
 import "./components/Extension";
 import Extension from "./components/Extension";
 import { GlobalStates } from "./GlobalStates";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, PlayOptions, rawReciterData } from "./types";
 import surahs from "./data/quranmp3/surahs.json";
 import recitersList from "./data/quranmp3/reciters.json";
@@ -12,6 +12,7 @@ import { useMemo } from "react";
 function App() {
   const extensionMode =
     import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
+
   useEffect(() => {
     if (extensionMode) {
       const stored = localStorage.getItem("quranstream-extension");
@@ -52,7 +53,8 @@ function App() {
     extensionMode && "moshaf" in extensionData ? extensionData["moshaf"] : 1
   ); // Default Moshaf
   const [pageWidth, setPageWidth] = useState(window.innerWidth);
-
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
+  const scrollTimeOutRef = useRef<number | undefined>(undefined);
   const [loved, setLoved] = useState<boolean>(false);
   const [lang, setLang] = useState<"en" | "ar">(
     extensionMode && "lang" in extensionData ? extensionData["lang"] : "ar"
@@ -74,8 +76,17 @@ function App() {
         ? extensionData["currentTime"]
         : 0,
   });
-
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const handlePageWidthState = () => {
+    setPageWidth(window.innerWidth);
+  };
+  const handleScrollState = () => {
+    clearTimeout(scrollTimeOutRef.current);
+    setIsScrolling(true);
+    scrollTimeOutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1000);
+  };
 
   const genrateSurahs = useCallback((): SurahData[] => {
     const surahsList: SurahData[] = [];
@@ -137,7 +148,14 @@ function App() {
   useEffect(() => {
     document.dir = lang == "en" ? "ltr" : "rtl";
   }, [lang]);
-
+  useEffect(() => {
+    window.addEventListener("resize", handlePageWidthState);
+    window.addEventListener("scroll", handleScrollState);
+    return () => {
+      window.removeEventListener("resize", handlePageWidthState);
+      window.removeEventListener("scroll", handleScrollState);
+    };
+  });
   return (
     <GlobalStates.Provider
       value={{
@@ -167,6 +185,7 @@ function App() {
         extensionMode,
         isLoading,
         setIsLoading,
+        isScrolling,
       }}
     >
       <Extension />
