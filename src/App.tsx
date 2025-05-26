@@ -12,69 +12,63 @@ import { useMemo } from "react";
 function App() {
   const extensionMode =
     import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
-
+  const storageKey = extensionMode
+    ? "quranstream-extension"
+    : "quranstream-web";
   useEffect(() => {
-    if (extensionMode) {
-      const stored = localStorage.getItem("quranstream-extension");
-      if (
-        !stored ||
-        (stored &&
-          (!("qari" in JSON.parse(stored)) ||
-            !("moshaf" in JSON.parse(stored)) ||
-            !("lang" in JSON.parse(stored)) ||
-            !("playing" in JSON.parse(stored)) ||
-            !("currentTime" in JSON.parse(stored)) ||
-            !("paused" in JSON.parse(stored)) ||
-            !("volume" in JSON.parse(stored)) ||
-            !("loop" in JSON.parse(stored))))
-      ) {
-        localStorage.setItem(
-          "quranstream-extension",
-          JSON.stringify({
-            qari: 123,
-            moshaf: 1,
-            lang: "en",
-            playing: 0,
-            currentTime: 0,
-            paused: true,
-            volume: 0.6,
-            loop: false,
-          })
-        );
-      }
+    const stored = localStorage.getItem(storageKey);
+    if (
+      !stored ||
+      (stored &&
+        (!("qari" in JSON.parse(stored)) ||
+          !("moshaf" in JSON.parse(stored)) ||
+          !("lang" in JSON.parse(stored)) ||
+          !("playing" in JSON.parse(stored)) ||
+          !("currentTime" in JSON.parse(stored)) ||
+          !("paused" in JSON.parse(stored)) ||
+          !("volume" in JSON.parse(stored)) ||
+          !("loop" in JSON.parse(stored))))
+    ) {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          qari: 123,
+          moshaf: 1,
+          lang: "en",
+          playing: 0,
+          currentTime: 0,
+          paused: true,
+          volume: 0.6,
+          loop: false,
+        })
+      );
     }
   }, []);
-  const stored = localStorage.getItem("quranstream-extension");
-  const extensionData = stored ? JSON.parse(stored) : {};
+  const stored = localStorage.getItem(storageKey);
+  const storedData = stored ? JSON.parse(stored) : {};
   const [qari, setQari] = useState<number>(
-    extensionMode && "qari" in extensionData ? extensionData["qari"] : 123
+    "qari" in storedData ? storedData["qari"] : 123
   ); // Default Mishari Alafasi
   const [moshaf, setMoshaf] = useState<number>(
-    extensionMode && "moshaf" in extensionData ? extensionData["moshaf"] : 1
+    "moshaf" in storedData ? storedData["moshaf"] : 1
   ); // Default Moshaf
   const [pageWidth, setPageWidth] = useState(window.innerWidth);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const scrollTimeOutRef = useRef<number | undefined>(undefined);
   const [loved, setLoved] = useState<boolean>(false);
   const [lang, setLang] = useState<"en" | "ar">(
-    extensionMode && "lang" in extensionData ? extensionData["lang"] : "ar"
+    "lang" in storedData ? storedData["lang"] : "ar"
   );
   const [playing, setPlaying] = useState<number>(
-    extensionMode && "playing" in extensionData ? extensionData["playing"] : 0
+    "playing" in storedData ? storedData["playing"] : 0
   );
   const [searchResult, setSearchResult] = useState<string>("");
   const [chooseReciter, setChooseReciter] = useState<boolean>(false);
   const [notFound, setNotFound] = useState<boolean>(false);
   const [playOptions, setPlayOptions] = useState<PlayOptions>({
-    playing:
-      extensionMode && "paused" in extensionData
-        ? !extensionData["paused"]
-        : false,
+    playing: "paused" in storedData ? !storedData["paused"] : false,
     duration: 0,
-    currentTime:
-      extensionMode && "currentTime" in extensionData
-        ? extensionData["currentTime"]
-        : 0,
+    currentTime: "currentTime" in storedData ? storedData["currentTime"] : 0,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const handlePageWidthState = () => {
@@ -131,17 +125,15 @@ function App() {
 
   useEffect(() => {
     const newPlaylist = generatePlaylist(qari);
-    if (extensionMode) {
-      const stored = localStorage.getItem("quranstream-extension");
-      const extensionData = stored ? JSON.parse(stored) : {};
-      localStorage.setItem(
-        "quranstream-extension",
-        JSON.stringify({
-          ...extensionData,
-          playlist: newPlaylist,
-        })
-      );
-    }
+    const stored = localStorage.getItem(storageKey);
+    const storedData = stored ? JSON.parse(stored) : {};
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        ...storedData,
+        playlist: newPlaylist,
+      })
+    );
     setPlaylist(newPlaylist);
   }, [moshaf, qari, generatePlaylist]);
 
@@ -186,6 +178,7 @@ function App() {
         isLoading,
         setIsLoading,
         isScrolling,
+        storageKey,
       }}
     >
       <Extension />

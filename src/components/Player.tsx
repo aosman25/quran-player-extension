@@ -9,34 +9,6 @@ import { Icons } from "./Icons";
 
 dayjs.extend(duration);
 const Player = () => {
-  const extensionMode =
-    import.meta.env.VITE_EXTENSION_MODE == "TRUE" ? true : false;
-  const stored = localStorage.getItem("quranstream-extension");
-  const extensionData = stored ? JSON.parse(stored) : {};
-  const containerRef = useRef<HTMLDivElement>(null);
-  const pointerRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<HTMLDivElement>(null);
-  const playBtnRef = useRef<HTMLButtonElement>(null);
-  const nextBtnRef = useRef<HTMLButtonElement>(null);
-  const playingStateRef = useRef<boolean>(
-    extensionMode && "paused" in extensionData ? !extensionData.paused : false
-  );
-  const loopStateRef = useRef<boolean>(
-    extensionMode && "loop" in extensionData ? extensionData.loop : false
-  );
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const audioVolumeRef = useRef<number>(
-    extensionMode && "volume" in extensionData ? extensionData.volume * 100 : 60
-  );
-  const [audioState, setAudioState] = useState<{
-    playing: boolean;
-    duration: number;
-  } | null>(null);
-  const [audioVolume, setAudioVolume] = useState<number>(
-    audioVolumeRef.current
-  );
-  const [loop, setLoop] = useState<boolean>(loopStateRef.current);
   const {
     lang,
     playlist,
@@ -49,50 +21,75 @@ const Player = () => {
     setPageWidth,
     isLoading,
     setIsLoading,
+    extensionMode,
+    storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
+
+  const stored = localStorage.getItem(storageKey);
+  const storedData = stored ? JSON.parse(stored) : {};
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pointerRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+  const playBtnRef = useRef<HTMLButtonElement>(null);
+  const nextBtnRef = useRef<HTMLButtonElement>(null);
+  const playingStateRef = useRef<boolean>(
+    "paused" in storedData ? !storedData.paused : false
+  );
+  const loopStateRef = useRef<boolean>(
+    "loop" in storedData ? storedData.loop : false
+  );
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioVolumeRef = useRef<number>(
+    "volume" in storedData ? storedData.volume * 100 : 60
+  );
+  const [audioState, setAudioState] = useState<{
+    playing: boolean;
+    duration: number;
+  } | null>(null);
+  const [audioVolume, setAudioVolume] = useState<number>(
+    audioVolumeRef.current
+  );
+  const [loop, setLoop] = useState<boolean>(loopStateRef.current);
   const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
-  const extensionInitializedRef = useRef<boolean>(false);
+  const componentLoadedRef = useRef<boolean>(false);
   const audioInitializedRef = useRef<boolean>(
-    !extensionData.paused ? false : true
+    !storedData.paused ? false : true
   );
-  const saveExtensionData = (audio: HTMLAudioElement) => {
-    const stored = localStorage.getItem("quranstream-extension");
-    const extensionData = stored ? JSON.parse(stored) : {};
+  const saveData = (audio: HTMLAudioElement) => {
+    const stored = localStorage.getItem(storageKey);
+    const storedData = stored ? JSON.parse(stored) : {};
     localStorage.setItem(
-      "quranstream-extension",
+      storageKey,
       JSON.stringify({
-        ...extensionData,
+        ...storedData,
         paused: !playingStateRef.current,
         currentTime: audio.currentTime,
       })
     );
   };
   const playAudio = (audio: HTMLAudioElement) => {
+    audio.play();
+    saveData(audio);
     if (extensionMode) {
-      audio.play();
-      saveExtensionData(audio);
       if (audioInitializedRef.current) {
         chrome.runtime.sendMessage({
           type: "PLAY_AUDIO",
         });
       }
       audioInitializedRef.current = true;
-    } else {
-      audio.play();
     }
   };
   const pauseAudio = (audio: HTMLAudioElement) => {
+    audio.pause();
+    saveData(audio);
     if (extensionMode) {
-      audio.pause();
-      saveExtensionData(audio);
       chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-    } else {
-      audio.pause();
     }
   };
 
@@ -117,11 +114,12 @@ const Player = () => {
 
     const audio = audioRef.current;
 
-    if (extensionMode && !extensionInitializedRef.current) {
-      const stored = localStorage.getItem("quranstream-extension");
-      const extensionData = stored ? JSON.parse(stored) : {};
-      audio.currentTime = extensionMode ? extensionData.currentTime : 0;
-      if (!extensionData.paused) {
+    if (!componentLoadedRef.current) {
+      const stored = localStorage.getItem(storageKey);
+      const storedData = stored ? JSON.parse(stored) : {};
+      audio.currentTime =
+        "currentTime" in storedData ? storedData.currentTime : 0;
+      if (!storedData.paused) {
         intervalRef.current = setInterval(() => {
           setNow((now) => now + 1);
           setPlayOptions({
@@ -129,9 +127,17 @@ const Player = () => {
             currentTime: audio.currentTime,
             duration: audio.duration,
           });
+          if (!extensionMode) {
+            const stored = localStorage.getItem(storageKey);
+            const storedData = stored ? JSON.parse(stored) : {};
+            localStorage.setItem(
+              storageKey,
+              JSON.stringify({ ...storedData, currentTime: audio.currentTime })
+            );
+          }
         }, 1000);
       }
-      extensionInitializedRef.current = true;
+      componentLoadedRef.current = true;
     }
     const progress = progressRef.current;
     const pointer = pointerRef.current;
@@ -181,6 +187,14 @@ const Player = () => {
           currentTime: audio.currentTime,
           duration: audio.duration,
         });
+        if (!extensionMode) {
+          const stored = localStorage.getItem(storageKey);
+          const storedData = stored ? JSON.parse(stored) : {};
+          localStorage.setItem(
+            storageKey,
+            JSON.stringify({ ...storedData, currentTime: audio.currentTime })
+          );
+        }
       }, 1000);
       playingStateRef.current = true;
       playAudio(audio);
@@ -439,9 +453,7 @@ const Player = () => {
 
     progress.style.transition = "none";
     pointer.style.transition = "none";
-    if (extensionMode) {
-      saveExtensionData(audioRef.current);
-    }
+    saveData(audioRef.current);
     if (!audioState.playing) {
       playBtn.click();
     }
@@ -479,17 +491,16 @@ const Player = () => {
     const audio = audioRef.current;
     audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
+    const stored = localStorage.getItem(storageKey);
+    const storedData = stored ? JSON.parse(stored) : {};
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        ...storedData,
+        volume: audio.volume,
+      })
+    );
     if (extensionMode) {
-      const stored = localStorage.getItem("quranstream-extension");
-      const extensionData = stored ? JSON.parse(stored) : {};
-      localStorage.setItem(
-        "quranstream-extension",
-        JSON.stringify({
-          ...extensionData,
-          volume: audio.volume,
-        })
-      );
-
       chrome.runtime.sendMessage({
         type: "CHANGE_VOLUME",
         volume: audio.volume,
@@ -831,17 +842,15 @@ const Player = () => {
       <div className="controls">
         <button
           onClick={() => {
-            if (extensionMode) {
-              const stored = localStorage.getItem("quranstream-extension");
-              const extensionData = stored ? JSON.parse(stored) : {};
-              localStorage.setItem(
-                "quranstream-extension",
-                JSON.stringify({
-                  ...extensionData,
-                  loop: !loopStateRef.current,
-                })
-              );
-            }
+            const stored = localStorage.getItem(storageKey);
+            const storedData = stored ? JSON.parse(stored) : {};
+            localStorage.setItem(
+              storageKey,
+              JSON.stringify({
+                ...storedData,
+                loop: !loopStateRef.current,
+              })
+            );
             setLoop(!loopStateRef.current);
             loopStateRef.current = !loopStateRef.current;
           }}
@@ -919,33 +928,30 @@ const Player = () => {
           <button
             onClick={() => {
               if (playing === 0) {
-                if (extensionMode) {
-                  const stored = localStorage.getItem("quranstream-extension");
-                  const extensionData = stored ? JSON.parse(stored) : {};
-                  localStorage.setItem(
-                    "quranstream-extension",
-                    JSON.stringify({
-                      ...extensionData,
-                      playing: playlist.length - 1,
-                      currentTime: 0,
-                    })
-                  );
-                }
+                const stored = localStorage.getItem(storageKey);
+                const storedData = stored ? JSON.parse(stored) : {};
+                localStorage.setItem(
+                  storageKey,
+                  JSON.stringify({
+                    ...storedData,
+                    playing: playlist.length - 1,
+                    currentTime: 0,
+                  })
+                );
 
                 setPlaying(playlist.length - 1);
               } else {
-                if (extensionMode) {
-                  const stored = localStorage.getItem("quranstream-extension");
-                  const extensionData = stored ? JSON.parse(stored) : {};
-                  localStorage.setItem(
-                    "quranstream-extension",
-                    JSON.stringify({
-                      ...extensionData,
-                      playing: playing - 1,
-                      currentTime: 0,
-                    })
-                  );
-                }
+                const stored = localStorage.getItem(storageKey);
+                const extensionData = stored ? JSON.parse(stored) : {};
+                localStorage.setItem(
+                  storageKey,
+                  JSON.stringify({
+                    ...extensionData,
+                    playing: playing - 1,
+                    currentTime: 0,
+                  })
+                );
+
                 setPlaying(playing - 1);
               }
             }}
@@ -978,32 +984,30 @@ const Player = () => {
           <button
             onClick={() => {
               if (playing === playlist.length - 1) {
-                if (extensionMode) {
-                  const stored = localStorage.getItem("quranstream-extension");
-                  const extensionData = stored ? JSON.parse(stored) : {};
-                  localStorage.setItem(
-                    "quranstream-extension",
-                    JSON.stringify({
-                      ...extensionData,
-                      playing: 0,
-                      currentTime: 0,
-                    })
-                  );
-                }
+                const stored = localStorage.getItem(storageKey);
+                const storedData = stored ? JSON.parse(stored) : {};
+                localStorage.setItem(
+                  storageKey,
+                  JSON.stringify({
+                    ...storedData,
+                    playing: 0,
+                    currentTime: 0,
+                  })
+                );
+
                 setPlaying(0);
               } else {
-                if (extensionMode) {
-                  const stored = localStorage.getItem("quranstream-extension");
-                  const extensionData = stored ? JSON.parse(stored) : {};
-                  localStorage.setItem(
-                    "quranstream-extension",
-                    JSON.stringify({
-                      ...extensionData,
-                      playing: playing + 1,
-                      currentTime: 0,
-                    })
-                  );
-                }
+                const stored = localStorage.getItem(storageKey);
+                const storedData = stored ? JSON.parse(stored) : {};
+                localStorage.setItem(
+                  storageKey,
+                  JSON.stringify({
+                    ...storedData,
+                    playing: playing + 1,
+                    currentTime: 0,
+                  })
+                );
+
                 setPlaying(playing + 1);
               }
             }}

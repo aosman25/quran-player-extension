@@ -19,24 +19,23 @@ const Surah = ({ id, name }: SurahData) => {
     qari,
     setSearchResult,
     isLoading,
+    storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
-  const { setPlaying, extensionMode } =
-    useContext<GlobalStatesContext>(GlobalStates);
+  const { setPlaying } = useContext<GlobalStatesContext>(GlobalStates);
   const onClick = () => {
     const surahPlaying = playlist.findIndex(({ id: surahId }) => surahId == id);
     setPlaying(surahPlaying);
-    if (extensionMode) {
-      const stored = localStorage.getItem("quranstream-extension");
-      const extensionData = stored ? JSON.parse(stored) : {};
-      localStorage.setItem(
-        "quranstream-extension",
-        JSON.stringify({
-          ...extensionData,
-          playing: surahPlaying,
-          currentTime: 0,
-        })
-      );
-    }
+    const stored = localStorage.getItem(storageKey);
+    const storedData = stored ? JSON.parse(stored) : {};
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        ...storedData,
+        playing: surahPlaying,
+        currentTime: 0,
+      })
+    );
+
     setSearchResult("");
   };
   const [hovered, setHovered] = useState(false);

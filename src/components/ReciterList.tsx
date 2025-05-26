@@ -22,7 +22,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     setMoshaf,
     searchResult,
     setSearchResult,
-    extensionMode,
+    storageKey,
   } = useContext(GlobalStates);
   const availableQaris: JSX.Element[] = [];
 
@@ -42,21 +42,19 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
             setPlaying(0);
             setMoshaf(0);
             setSearchResult("");
-            if (extensionMode) {
-              const extensionData = JSON.parse(
-                localStorage.getItem("quranstream-extension") || "{}"
-              );
-              localStorage.setItem(
-                "quranstream-extension",
-                JSON.stringify({
-                  ...extensionData,
-                  playing: 0,
-                  moshaf: 0,
-                  currentTime: 0,
-                  qari: id,
-                })
-              );
-            }
+            const storedData = JSON.parse(
+              localStorage.getItem(storageKey) || "{}"
+            );
+            localStorage.setItem(
+              storageKey,
+              JSON.stringify({
+                ...storedData,
+                playing: 0,
+                moshaf: 0,
+                currentTime: 0,
+                qari: id,
+              })
+            );
           }}
         >
           {name}

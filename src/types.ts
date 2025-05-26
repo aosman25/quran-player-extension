@@ -26,6 +26,7 @@ export interface GlobalStatesContext {
     isLoading: boolean,
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
     isScrolling: boolean,
+    storageKey: string
 }
 
 

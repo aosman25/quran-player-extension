@@ -28,6 +28,7 @@ const Header = () => {
     pageWidth,
     extensionMode,
     isScrolling,
+    storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -81,17 +82,15 @@ const Header = () => {
             onClick={() => {
               const newLang = lang == "en" ? "ar" : "en";
               setLang(newLang);
-              if (extensionMode) {
-                const stored = localStorage.getItem("quranstream-extension");
-                const extensionData = stored ? JSON.parse(stored) : {};
-                localStorage.setItem(
-                  "quranstream-extension",
-                  JSON.stringify({
-                    ...extensionData,
-                    lang: newLang,
-                  })
-                );
-              }
+              const stored = localStorage.getItem(storageKey);
+              const storedData = stored ? JSON.parse(stored) : {};
+              localStorage.setItem(
+                storageKey,
+                JSON.stringify({
+                  ...storedData,
+                  lang: newLang,
+                })
+              );
             }}
           >
             {lang == "en" ? "عربي" : "English"}
@@ -254,16 +253,15 @@ const Header = () => {
                                     if (index !== moshaf) {
                                       setMoshaf(index);
                                       if (extensionMode) {
-                                        const stored = localStorage.getItem(
-                                          "quranstream-extension"
-                                        );
-                                        const extensionData = stored
+                                        const stored =
+                                          localStorage.getItem(storageKey);
+                                        const storedData = stored
                                           ? JSON.parse(stored)
                                           : {};
                                         localStorage.setItem(
-                                          "quranstream-extension",
+                                          storageKey,
                                           JSON.stringify({
-                                            ...extensionData,
+                                            ...storedData,
                                             moshaf: index,
                                             currentTime: 0,
                                             playing: 0,
