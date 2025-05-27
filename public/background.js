@@ -22,10 +22,3 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   await ensureOffscreenDocument();
   chrome.runtime.sendMessage(message); // forward to offscreen
 });
-
-// This part handles browser/service worker shutdown
-chrome.runtime.onSuspend.addListener(() => {
-  chrome.runtime.sendMessage({
-    type: "STOP_AUDIO",
-  });
-});
