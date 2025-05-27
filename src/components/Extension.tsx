@@ -31,7 +31,6 @@ const Extension = () => {
     qari,
     pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
-  console.log(pageWidth);
   const availableSurahs: JSX.Element[] = [];
   const avaialbeReciters: JSX.Element[] = [];
   const scrollTimeout = useRef<number | null>(null);

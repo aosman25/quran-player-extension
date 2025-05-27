@@ -4,109 +4,127 @@
       "name": {
         "ar": "حفص عن عاصم - مرتل",
         "en": "Rewayat Hafs A'n Assem - Murattal"
-      }
+      },
+      "popularity": 100
     },
     "2": {
       "name": {
         "ar": "ورش عن نافع - مرتل",
         "en": "Rewayat Warsh A'n Nafi' - Murattal"
-      }
+      },
+      "popularity": 85
     },
     "3": {
       "name": {
         "ar": "خلف عن حمزة - مرتل",
         "en": "Rewayat Khalaf A'n Hamzah - Murattal"
-      }
+      },
+      "popularity": 60
     },
     "4": {
       "name": {
         "ar": "البزي عن ابن كثير - مرتل",
         "en": "Rewayat Albizi A'n Ibn Katheer - Murattal"
-      }
+      },
+      "popularity": 55
     },
     "5": {
       "name": {
         "ar": "قالون عن نافع - مرتل",
         "en": "Rewayat Qalon A'n Nafi' - Murattal"
-      }
+      },
+      "popularity": 75
     },
     "6": {
       "name": {
         "ar": "قنبل عن ابن كثير - مرتل",
         "en": "Rewayat Qunbol A'n Ibn Katheer - Murattal"
-      }
+      },
+      "popularity": 50
     },
     "7": {
       "name": {
         "ar": "السوسي عن أبي عمرو - مرتل",
         "en": "Rewayat Assosi A'n Abi Amr - Murattal"
-      }
+      },
+      "popularity": 45
     },
     "8": {
       "name": {
         "ar": "قالون عن نافع من طريق أبي نشيط - مرتل",
         "en": "Rewayat Qalon A'n Nafi' Men Tariq Abi Nasheet - Murattal"
-      }
+      },
+      "popularity": 40
     },
     "9": {
       "name": {
         "ar": "قراءة يعقوب الحضرمي بروايتي رويس وروح - مرتل",
         "en": "Rewayat Rowis and Rawh A'n Yakoob Al Hadrami  - Murattal"
-      }
+      },
+      "popularity": 30
     },
     "10": {
       "name": {
         "ar": "ورش عن نافع من طريق أبي بكر الأصبهاني - مرتل",
         "en": "Rewayat Warsh A'n Nafi' Men  Tariq Abi Baker Alasbahani - Murattal"
-      }
+      },
+      "popularity": 35
     },
     "11": {
       "name": {
         "ar": "البزي وقنبل عن ابن كثير - مرتل",
         "en": "Rewayat Albizi and Qunbol A'n Ibn Katheer - Murattal"
-      }
+      },
+      "popularity": 38
     },
     "12": {
       "name": {
         "ar": "الدوري عن الكسائي - مرتل",
         "en": "Rewayat AlDorai A'n Al-Kisa'ai - Murattal"
-      }
+      },
+      "popularity": 42
     },
     "13": {
       "name": {
         "ar": "الدوري عن أبي عمرو - مرتل",
         "en": "Rewayat Aldori A'n Abi Amr - Murattal"
-      }
+      },
+      "popularity": 60
     },
     "15": {
       "name": {
         "ar": "شعبة  عن عاصم - مرتل",
         "en": "Sho'bah A'n Asim - Murattal"
-      }
+      },
+      "popularity": 65
     },
     "16": {
       "name": {
         "ar": "ابن ذكوان عن ابن عامر - مرتل",
         "en": "Ibn Thakwan A'n Ibn Amer - Murattal"
-      }
+      },
+      "popularity": 28
     },
     "18": {
       "name": {
         "ar": "ورش عن نافع من طريق الأزرق - مرتل",
         "en": "Rewayat Warsh A'n Nafi' Men Tariq Alazraq - Murattal"
-      }
+      },
+      "popularity": 50
     },
     "19": {
       "name": {
         "ar": "هشام عن ابي عامر - مرتل",
         "en": "Hesham A'n Abi A'mer - Murattal"
-      }
+      },
+      "popularity": 30
     },
     "20": {
       "name": {
         "ar": "ابن جماز عن أبي جعفر - مرتل",
         "en": "Ibn Jammaz A'n Abi Ja'far - Murattal"
-      }
+      },
+      "popularity": 25
     }
   },
   "2": {
@@ -114,31 +132,36 @@
       "name": {
         "ar": "حفص عن عاصم - المصحف المجود",
         "en": "Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad"
-      }
+      },
+      "popularity": 80
     },
     "5": {
       "name": {
         "ar": "قالون عن نافع - المصحف المجود",
         "en": "Rewayat Qalon A'n Nafi' - Almusshaf Al Mojawwad"
-      }
+      },
+      "popularity": 60
     },
     "13": {
       "name": {
         "ar": "الدوري عن أبي عمرو - المصحف المجود",
         "en": "Rewayat Aldori A'n Abi Amr - Almusshaf Al Mojawwad"
-      }
+      },
+      "popularity": 50
     },
     "15": {
       "name": {
         "ar": "شعبة  عن عاصم - المصحف المجود",
         "en": "Sho'bah A'n Asim - Almusshaf Al Mojawwad"
-      }
+      },
+      "popularity": 55
     },
     "22": {
       "name": {
         "ar": "المصحف المجود",
         "en": "Almusshaf Al Mojawwad"
-      }
+      },
+      "popularity": 40
     }
   },
   "3": {
@@ -146,13 +169,15 @@
       "name": {
         "ar": "حفص عن عاصم - المصحف المعلم",
         "en": "Rewayat Hafs A'n Assem - Almusshaf Al Mo'lim"
-      }
+      },
+      "popularity": 75
     },
     "21": {
       "name": {
         "ar": "المصحف المعلم",
         "en": "Almusshaf Al Mo'lim"
-      }
+      },
+      "popularity": 35
     }
   }
 }

@@ -26,7 +26,6 @@ const Header = () => {
     chooseReciter,
     setChooseReciter,
     pageWidth,
-    extensionMode,
     isScrolling,
     storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
@@ -242,17 +241,27 @@ const Header = () => {
                           }
                           className="mohafs-container"
                         >
-                          {availableMoshafs.map(
-                            ({ moshaf_id, moshaf_type }, index) => {
-                              return (
-                                <button
-                                  className={`${
-                                    lang == "en" ? "en-font" : "ar-font"
-                                  }`}
-                                  onClick={() => {
-                                    if (index !== moshaf) {
-                                      setMoshaf(index);
-                                      if (extensionMode) {
+                          {[...availableMoshafs]
+                            .map((m, i) => ({ ...m, originalIndex: i })) // attach original index
+                            .sort((a, b) => {
+                              const popA =
+                                moshafs[a.moshaf_id][a.moshaf_type]
+                                  ?.popularity ?? 0;
+                              const popB =
+                                moshafs[b.moshaf_id][b.moshaf_type]
+                                  ?.popularity ?? 0;
+                              return popB - popA;
+                            })
+                            .map(
+                              ({ moshaf_id, moshaf_type, originalIndex }) => {
+                                return (
+                                  <button
+                                    className={`${
+                                      lang == "en" ? "en-font" : "ar-font"
+                                    }`}
+                                    onClick={() => {
+                                      if (originalIndex !== moshaf) {
+                                        setMoshaf(originalIndex);
                                         const stored =
                                           localStorage.getItem(storageKey);
                                         const storedData = stored
@@ -262,30 +271,33 @@ const Header = () => {
                                           storageKey,
                                           JSON.stringify({
                                             ...storedData,
-                                            moshaf: index,
+                                            moshaf: originalIndex,
                                             currentTime: 0,
                                             playing: 0,
                                           })
                                         );
+
+                                        setPlaying(0);
                                       }
-                                      setPlaying(0);
+                                      setChangeMoshaf(false);
+                                      clearTimeout(
+                                        changeMoshafTimeout as number
+                                      );
+                                    }}
+                                  >
+                                    {
+                                      (
+                                        moshafs[moshaf_id][moshaf_type][
+                                          "name"
+                                        ] as Language
+                                      )[lang as keyof Language]
                                     }
-                                    setChangeMoshaf(false);
-                                    clearTimeout(changeMoshafTimeout as number);
-                                  }}
-                                >
-                                  {
-                                    (
-                                      moshafs[moshaf_id][moshaf_type][
-                                        "name"
-                                      ] as Language
-                                    )[lang as keyof Language]
-                                  }
-                                </button>
-                              );
-                            }
-                          )}
+                                  </button>
+                                );
+                              }
+                            )}
                         </div>
+
                         <div></div>
                       </div>
                     </>
