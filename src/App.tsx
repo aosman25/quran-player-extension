@@ -57,7 +57,7 @@ function App() {
   const scrollTimeOutRef = useRef<number | undefined>(undefined);
   const [loved, setLoved] = useState<boolean>(false);
   const [lang, setLang] = useState<"en" | "ar">(
-    "lang" in storedData ? storedData["lang"] : "ar"
+    "lang" in storedData ? storedData["lang"] : "en"
   );
   const [playing, setPlaying] = useState<number>(
     "playing" in storedData ? storedData["playing"] : 0
