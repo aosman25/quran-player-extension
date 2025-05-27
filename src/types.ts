@@ -77,7 +77,8 @@ export interface MoshafsType {
   [key: string | number]: {
     [key: string]: {
       "name": Language
-    }
+      "popularity": number
+    },
   }
 }
 
