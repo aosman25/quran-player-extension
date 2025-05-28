@@ -1,0 +1,20 @@
+{
+  "name": "QuranStream",
+  "short_name": "QuranStream",
+  "description": "Access free, high-quality Quran recitations from world-renowned Qaris. Features include multiple reciters, moshafs navigation, and continuous playback.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icons/icon1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "religious", "audio"],
+  "lang": "en",
+  "orientation": "any",
+  "prefer_related_applications": false
+}
