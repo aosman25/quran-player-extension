@@ -138,7 +138,7 @@ const Extension = () => {
       <Header />
       {chooseReciter ? (
         avaialbeReciters.length >= 1 ? (
-          <div className="reciters-grid">
+          <div style={{ pointerEvents: "all" }} className="reciters-grid">
             {Object.keys(
               (reciterNames as ReciterNamesType)[lang as keyof ReciterNamesType]
             ).map((firstLetter) => (
