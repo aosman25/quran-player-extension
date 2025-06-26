@@ -123,14 +123,6 @@
 
 }
 
-button {
-    &.disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-}
-
 @media screen and (max-width: $width-breakpoint) {
     .header-container {
         height: 150px;
