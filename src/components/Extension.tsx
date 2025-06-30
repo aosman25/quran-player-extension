@@ -79,12 +79,12 @@ const Extension = () => {
   }, []);
 
   useEffect(() => {
-    setTimeout(scrollToTarget, 800);
+    setTimeout(scrollToTarget, 1000);
   }, [lang, qari]);
   useEffect(() => {
     playingRef.current = playing;
     playlistRef.current = playlist;
-    setTimeout(scrollToTarget, 800);
+    setTimeout(scrollToTarget, 1000);
   }, [playing, playlist]);
   if (!chooseReciter) {
     surahsList.forEach(
