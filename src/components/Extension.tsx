@@ -41,7 +41,12 @@ const Extension = () => {
   const scrollOptions = {
     duration: 700,
     smooth: true,
-    offset: pageWidth <= 800 ? -165 : -120,
+  };
+  const scrollToTarget = () => {
+    scroller.scrollTo(
+      String(String(playlistRef.current[playingRef.current]["id"])),
+      { ...scrollOptions, offset: offsetRef.current }
+    );
   };
   useEffect(() => {
     offsetRef.current = pageWidth <= 800 ? -165 : -120;
@@ -49,12 +54,7 @@ const Extension = () => {
   useEffect(() => {
     const handleScroll = () => {
       clearTimeout(scrollTimeout.current as number);
-      scrollTimeout.current = setTimeout(() => {
-        scroller.scrollTo(
-          String(String(playlistRef.current[playingRef.current]["id"])),
-          { ...scrollOptions, offset: offsetRef.current }
-        );
-      }, 3500);
+      scrollTimeout.current = setTimeout(scrollToTarget, 3500);
     };
 
     window.addEventListener("scroll", () => {
@@ -79,16 +79,12 @@ const Extension = () => {
   }, []);
 
   useEffect(() => {
-    scroller.scrollTo(
-      String(String(playlistRef.current[playingRef.current]["id"])),
-      { ...scrollOptions, duration: 0 }
-    );
+    setTimeout(scrollToTarget, 800);
   }, [lang, qari]);
   useEffect(() => {
     playingRef.current = playing;
     playlistRef.current = playlist;
-    // Set timeout to reset scroll status after 150ms of no scroll
-    scroller.scrollTo(String(String(playlist[playing]["id"])), scrollOptions);
+    setTimeout(scrollToTarget, 800);
   }, [playing, playlist]);
   if (!chooseReciter) {
     surahsList.forEach(
