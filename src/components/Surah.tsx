@@ -16,15 +16,20 @@ const Surah = ({ id, name }: SurahData) => {
     lang,
     playOptions,
     setPlayOptions,
-    qari,
     setSearchResult,
     isLoading,
     storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
-  const { setPlaying } = useContext<GlobalStatesContext>(GlobalStates);
+  const { setPlaying, extensionMode } =
+    useContext<GlobalStatesContext>(GlobalStates);
   const onClick = () => {
     const surahPlaying = playlist.findIndex(({ id: surahId }) => surahId == id);
     setPlaying(surahPlaying);
+    if (extensionMode) {
+      chrome.runtime.sendMessage({
+        type: "STOP_AUDIO",
+      });
+    }
     const stored = localStorage.getItem(storageKey);
     const storedData = stored ? JSON.parse(stored) : {};
     localStorage.setItem(
@@ -83,12 +88,7 @@ const Surah = ({ id, name }: SurahData) => {
         }, 1);
       }
     }
-  }, [
-    playOptions.currentTime,
-    playOptions.duration,
-    playOptions.playing,
-    qari,
-  ]);
+  }, [playOptions.currentTime, playOptions.duration, playOptions.playing]);
 
   return (
     <>
