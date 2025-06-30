@@ -25,7 +25,9 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     setMoshaf,
     searchResult,
     setSearchResult,
+    setPlayOptions,
     storageKey,
+    extensionMode,
   } = useContext(GlobalStates);
   const availableQaris: JSX.Element[] = [];
   const moshafs: MoshafsType = moshafsData;
@@ -66,9 +68,15 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
             // Step 3: Update state and localStorage
             setChooseReciter(false);
             setQari(id);
+            setPlayOptions({ playing: true, duration: 0, currentTime: 0 });
             setPlaying(0);
             setMoshaf(topOriginalIndex);
             setSearchResult("");
+            if (extensionMode) {
+              chrome.runtime.sendMessage({
+                type: "STOP_AUDIO",
+              });
+            }
 
             const storedData = JSON.parse(
               localStorage.getItem(storageKey) || "{}"

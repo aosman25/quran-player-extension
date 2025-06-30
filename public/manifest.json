@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.0.1",
+  "version": "2.0.0",
   "name": "Quran Stream | Play Quran in Your Browser",
   "icons": {
     "16": "icons/icon16.png",
