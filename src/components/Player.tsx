@@ -59,7 +59,7 @@ const Player = () => {
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
   const componentLoadedRef = useRef<boolean>(false);
   const audioInitializedRef = useRef<boolean>(
-    !storedData.paused ? false : true
+    "paused" in storedData && !storedData.paused ? false : true
   );
   const saveData = (audio: HTMLAudioElement) => {
     const stored = localStorage.getItem(storageKey);
