@@ -82,6 +82,17 @@ export interface MoshafsType {
   }
 }
 
+export type ReciterName = {
+  id: number;
+  name: string;
+  search_combs: string[];
+};
+
+export type ReciterNamesType = {
+  ar: Record<string, ReciterName[]>;
+  en: Record<string, ReciterName[]>;
+};
+
 export interface rawSurahData {
         "id": number,
         "page": [number, number],

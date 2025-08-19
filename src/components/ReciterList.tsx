@@ -1,20 +1,11 @@
 import { useContext } from "react";
 import reciterNames from "../data/quranmp3/sorted_reciter_names.json";
 import { GlobalStates } from "../GlobalStates";
-import { MoshafsType } from "../types";
+import { MoshafsType, ReciterNamesType } from "../types";
 import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
 import "../styles/components/ReciterList.scss";
-
-type ReciterName = {
-  id: number;
-  name: string;
-};
-
-type ReciterNamesType = {
-  ar: Record<string, ReciterName[]>;
-  en: Record<string, ReciterName[]>;
-};
+import {} from "../types";
 
 const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
   const {
@@ -36,8 +27,10 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
   const langReciters = reciterNamesTyped[lang as keyof ReciterNamesType];
   const reciters = langReciters[firstLetter] || [];
 
-  reciters.forEach(({ name, id }) => {
-    if (name.toLowerCase().startsWith(searchResult.trim().toLowerCase())) {
+  reciters.forEach(({ name, id, search_combs }) => {
+    const match = search_combs.some((n) => n.startsWith(searchResult));
+
+    if (match) {
       availableQaris.push(
         <button
           className={`${lang == "en" ? "en-font" : "ar-font"}`}
@@ -98,22 +91,19 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
       );
     }
   });
-
-  return availableQaris.length >= 1 &&
-    (!searchResult ||
-      firstLetter
-        .toLowerCase()
-        .startsWith(searchResult.trim()[0].toLowerCase())) ? (
-    <div className="reciter-list">
-      <div>
-        <p className={`first-letter ${lang == "en" ? "en-font" : "ar-font"}`}>
-          {firstLetter}
-        </p>
-        <hr />
+  return (
+    availableQaris.length >= 1 && (
+      <div className="reciter-list">
+        <div>
+          <p className={`first-letter ${lang == "en" ? "en-font" : "ar-font"}`}>
+            {firstLetter}
+          </p>
+          <hr />
+        </div>
+        <div className="reciter-sublist">{availableQaris}</div>
       </div>
-      <div className="reciter-sublist">{availableQaris}</div>
-    </div>
-  ) : null;
+    )
+  );
 };
 
 export default ReciterList;

@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+import re
 
 
 ar_surahs =  [
@@ -10343,11 +10344,54 @@ def preprocess_moshafs_and_reciters():
     with open("reciters_final_data.json", "w", encoding="utf-8") as file:
         json.dump(reciters_final_data, file, indent=4, ensure_ascii=False)
         print("Data has been saved to reciters_final_data.json.json")
+import json
+from collections import defaultdict
+
+
+# normalize Arabic letters
+def normalize_arabic_text(text: str) -> str:
+    replacements = {
+        "أ": "ا",
+        "إ": "ا",
+        "آ": "ا",
+        "ٱ": "ا",
+        "ى": "ي"
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+def normalize_arabic_letter(letter: str) -> str:
+    return normalize_arabic_text(letter)
+
+# normalize English text (remove dashes)
+def normalize_english_text(text: str) -> str:
+    return re.sub(r"-", "", text).strip()
+
+# generate all prefix+suffix combinations of words in a name
+def generate_search_combs(name: str, normalize: bool = False, lang: str = "ar") -> list[str]:
+    if lang == "en":
+        name = normalize_english_text(name)
+
+    words = name.split()
+    combs = []
+    for i in range(len(words)):
+        for j in range(i + 1, len(words) + 1):
+            chunk = " ".join(words[i:j])
+            if normalize and lang == "ar":
+                chunk = normalize_arabic_text(chunk)
+            combs.append(chunk)
+    return combs
 
 def group_reciters_by_letter(input_path: str, output_path: str = "sorted_reciter_names.json") -> None:
     """
     Loads a JSON file of reciters, groups and sorts them by the initial Arabic and English letters of their names.
-    Each reciter is represented by a dictionary with only 'id' and 'name'.
+    Each reciter is represented by a dictionary with 'id', 'name', and 'search_combs'.
+
+    - Normalizes all forms of 'ا' (أ, إ, آ, ٱ → ا) and 'ى' → 'ي'.
+    - Removes dashes in English names.
+    - Adds 'search_combs' for each reciter containing all prefix/suffix combinations
+      of their Arabic (normalized) and English names.
 
     Args:
         input_path (str): Path to the input JSON file.
@@ -10362,22 +10406,30 @@ def group_reciters_by_letter(input_path: str, output_path: str = "sorted_reciter
     }
 
     for reciter in data.values():
-        ar_letter = reciter["letter"]["ar"]
+        ar_letter = normalize_arabic_letter(reciter["letter"]["ar"])
         en_letter = reciter["letter"]["en"].upper()
 
-        grouped["ar"][ar_letter].append({
-            "id": reciter["id"],
-            "name": reciter["name"]["ar"]
-        })
+        # generate search combinations (Arabic normalized, English dash-free)
+        ar_combs = generate_search_combs(reciter["name"]["ar"], normalize=True, lang="ar")
+        en_combs = generate_search_combs(reciter["name"]["en"].lower(), normalize=False, lang="en")
 
-        grouped["en"][en_letter].append({
+        reciter_entry_ar = {
             "id": reciter["id"],
-            "name": reciter["name"]["en"]
-        })
+            "name": reciter["name"]["ar"],
+            "search_combs": ar_combs
+        }
+        reciter_entry_en = {
+            "id": reciter["id"],
+            "name": reciter["name"]["en"],
+            "search_combs": en_combs
+        }
 
-    # Sort by letter and then sort lists by name
+        grouped["ar"][ar_letter].append(reciter_entry_ar)
+        grouped["en"][en_letter].append(reciter_entry_en)
+
+    # Sort groups by letter and then by name
     grouped["ar"] = {
-        k: sorted(v, key=lambda x: x["name"]) for k, v in sorted(grouped["ar"].items())
+        k: sorted(v, key=lambda x: normalize_arabic_text(x["name"])) for k, v in sorted(grouped["ar"].items())
     }
     grouped["en"] = {
         k: sorted(v, key=lambda x: x["name"]) for k, v in sorted(grouped["en"].items())
