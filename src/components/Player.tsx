@@ -6,6 +6,10 @@ import dayjs from "dayjs";
 import Slider from "@mui/material/Slider";
 import duration from "dayjs/plugin/duration";
 import { Icons } from "./Icons";
+import { usePlayerStorage } from "../hooks/usePlayerStorage";
+import { useAudioState } from "../hooks/useAudioState";
+import { useProgressBar } from "../hooks/useProgressBar";
+import { useAudioEvents } from "../hooks/useAudioEvents";
 
 dayjs.extend(duration);
 const Player = () => {
@@ -14,7 +18,6 @@ const Player = () => {
     playlist,
     playing,
     setPlaying,
-    playOptions,
     setPlayOptions,
     qari,
     moshaf,
@@ -25,73 +28,72 @@ const Player = () => {
     storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
 
-  const stored = localStorage.getItem(storageKey);
-  const storedData = stored ? JSON.parse(stored) : {};
-  const containerRef = useRef<HTMLDivElement>(null);
-  const pointerRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
+  const { getStoredData, updateStoredData } = usePlayerStorage(storageKey);
+  const storedData = getStoredData();
+
   const playerRef = useRef<HTMLDivElement>(null);
   const playBtnRef = useRef<HTMLButtonElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
-  const playingStateRef = useRef<boolean>(
-    "paused" in storedData ? !storedData.paused : false
-  );
-  const loopStateRef = useRef<boolean>(
-    "loop" in storedData ? storedData.loop : false
-  );
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioVolumeRef = useRef<number>(
-    "volume" in storedData ? storedData.volume * 100 : 60
-  );
-  const [audioState, setAudioState] = useState<{
-    playing: boolean;
-    duration: number;
-  } | null>(null);
-  const [audioVolume, setAudioVolume] = useState<number>(
-    audioVolumeRef.current
-  );
-  const [loop, setLoop] = useState<boolean>(loopStateRef.current);
-  const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [, setNow] = useState<number>(0);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [hoverVolume, setHoverVolume] = useState<boolean>(false);
   const componentLoadedRef = useRef<boolean>(false);
-  const audioInitializedRef = useRef<boolean>(
-    "paused" in storedData && !storedData.paused ? false : true
+  const loopStateRef = useRef<boolean>(storedData.loop || false);
+  const playBtnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressUpdateInterval = useRef<ReturnType<typeof setInterval> | null>(
+    null
   );
-  const saveData = (audio: HTMLAudioElement) => {
-    const stored = localStorage.getItem(storageKey);
-    const storedData = stored ? JSON.parse(stored) : {};
-    localStorage.setItem(
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [hoverVolume, setHoverVolume] = useState(false);
+  const wasPlayingBeforeDragRef = useRef(false);
+  const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { audioState, setAudioState, playingStateRef, playAudio, pauseAudio } =
+    useAudioState({
       storageKey,
-      JSON.stringify({
-        ...storedData,
-        paused: !playingStateRef.current,
-        currentTime: audio.currentTime,
-      })
-    );
-  };
-  const playAudio = (audio: HTMLAudioElement) => {
-    audio.play();
-    saveData(audio);
-    if (extensionMode) {
-      if (audioInitializedRef.current) {
-        chrome.runtime.sendMessage({
-          type: "PLAY_AUDIO",
-        });
+      extensionMode,
+      onPlayingChange: undefined, // Remove this callback to prevent circular updates
+    });
+
+  const {
+    containerRef,
+    pointerRef,
+    progressRef,
+    resetProgress,
+    updateProgressPosition,
+  } = useProgressBar({
+    lang,
+    audioState,
+    onProgressChange: (time) => {
+      if (!audioRef.current || !audioState) return;
+      const audio = audioRef.current;
+      audio.currentTime = time;
+      pauseAudio(audio);
+      setAudioState({ ...audioState, playing: false });
+
+      // Resume playback after a short delay
+      setTimeout(() => {
+        if (!audioRef.current) return;
+        playAudio(audioRef.current);
+        setAudioState({ ...audioState, playing: true });
+      }, 50);
+    },
+  });
+
+  useAudioEvents({
+    audioRef,
+    playingStateRef,
+    onLoadingChange: setIsLoading,
+    onPlaybackError: () => {
+      if (navigator.onLine && audioRef.current) {
+        audioRef.current.load();
       }
-      audioInitializedRef.current = true;
-    }
-  };
-  const pauseAudio = (audio: HTMLAudioElement) => {
-    audio.pause();
-    saveData(audio);
-    if (extensionMode) {
-      chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-    }
-  };
+    },
+  });
+
+  const [audioVolume, setAudioVolume] = useState(
+    storedData.volume ? storedData.volume * 100 : 60
+  );
+  const [loop, setLoop] = useState(storedData.loop || false);
 
   // Helper function to position pointer based on language
   const positionPointer = useCallback(
@@ -114,41 +116,31 @@ const Player = () => {
 
     const audio = audioRef.current;
 
+    // Set initial time from storage
     if (!componentLoadedRef.current) {
       const stored = localStorage.getItem(storageKey);
       const storedData = stored ? JSON.parse(stored) : {};
       audio.currentTime =
         "currentTime" in storedData ? storedData.currentTime : 0;
-      if (!storedData.paused) {
-        intervalRef.current = setInterval(() => {
-          setNow((now) => now + 1);
-          setPlayOptions({
-            playing: playingStateRef.current,
-            currentTime: audio.currentTime,
-            duration: audio.duration,
-          });
-          if (!extensionMode) {
-            const stored = localStorage.getItem(storageKey);
-            const storedData = stored ? JSON.parse(stored) : {};
-            localStorage.setItem(
-              storageKey,
-              JSON.stringify({ ...storedData, currentTime: audio.currentTime })
-            );
-          }
-        }, 1000);
-      }
+
+      // Don't auto-play, just set the state
+      playingStateRef.current = false;
+      audio.pause();
       componentLoadedRef.current = true;
     }
+
     const progress = progressRef.current;
     const pointer = pointerRef.current;
     const isRtl = lang === "ar";
 
+    // Set initial state based on stored data
+    const isInitiallyPlaying = !storedData.paused;
     setAudioState({
-      playing: playingStateRef.current,
+      playing: isInitiallyPlaying,
       duration: audio.duration,
     });
     setPlayOptions({
-      playing: playingStateRef.current,
+      playing: isInitiallyPlaying,
       duration: audio.duration,
       currentTime: audio.currentTime,
     });
@@ -163,50 +155,19 @@ const Player = () => {
 
     // Clear loading state once metadata is loaded and ready to play
     setIsLoading(false);
-  }, [lang, positionPointer, extensionMode]);
-
-  // Handle play/pause audio
-  const handlePlayAudio = useCallback(() => {
-    if (!audioRef.current || !audioState) return;
-    const audio = audioRef.current;
-    if (audioState.playing) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      playingStateRef.current = false;
-      pauseAudio(audio);
-    } else {
-      setNow((now) => now + 1);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      intervalRef.current = setInterval(() => {
-        setNow((now) => now + 1);
-        setPlayOptions({
-          playing: playingStateRef.current,
-          currentTime: audio.currentTime,
-          duration: audio.duration,
-        });
-        if (!extensionMode) {
-          const stored = localStorage.getItem(storageKey);
-          const storedData = stored ? JSON.parse(stored) : {};
-          localStorage.setItem(
-            storageKey,
-            JSON.stringify({ ...storedData, currentTime: audio.currentTime })
-          );
-        }
-      }, 1000);
-      playingStateRef.current = true;
-      playAudio(audio);
-    }
-
-    setAudioState({ ...audioState, playing: playingStateRef.current });
-    setPlayOptions({
-      playing: !audioState.playing,
-      currentTime: audio.currentTime,
-      duration: audio.duration,
-    });
-  }, [audioState]);
+  }, [
+    positionPointer,
+    pauseAudio,
+    playAudio,
+    playingStateRef,
+    pointerRef,
+    progressRef,
+    setAudioState,
+    setIsLoading,
+    setPlayOptions,
+    storageKey,
+    storedData.paused,
+  ]);
 
   // Handle click on progress bar
   const onMouseClick = useCallback(
@@ -229,7 +190,6 @@ const Player = () => {
       const container = containerRef.current;
       const progressBar = progressRef.current;
       const audio = audioRef.current;
-      const playBtn = playBtnRef.current;
       const containerRect = container.getBoundingClientRect();
       const maxX = containerRect.width;
       const isRtl = lang === "ar";
@@ -251,28 +211,48 @@ const Player = () => {
       positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
 
+      // Store the playing state before pausing
+      const wasPlaying = audioState.playing;
+
       // Set new audio time
       audio.currentTime = (duration * audioProgress) / 100;
       pauseAudio(audio);
       setAudioState({ ...audioState, playing: false });
+
+      // Update playOptions immediately for Surah component sync
       setPlayOptions({
         playing: false,
         currentTime: audio.currentTime,
         duration: audio.duration,
       });
 
-      // Resume playback after a very short delay
+      // Resume playback after a very short delay if it was playing
       if (playBtnTimeout.current) {
         clearTimeout(playBtnTimeout.current);
       }
       playBtnTimeout.current = setTimeout(() => {
-        playBtn.click();
+        // Resume if we were playing before seeking
+        if (wasPlaying) {
+          playAudio(audio);
+          setAudioState({ ...audioState, playing: true });
+        }
         // Restore transitions after playback resumes
         pointer.style.transition = "opacity 300ms ease-out";
         progressBar.style.transition = "width 100ms linear";
       }, 50);
     },
-    [audioState, lang, positionPointer]
+    [
+      audioState,
+      lang,
+      positionPointer,
+      containerRef,
+      pauseAudio,
+      playAudio,
+      pointerRef,
+      progressRef,
+      setAudioState,
+      setPlayOptions,
+    ]
   );
 
   // Handle mouse move during drag
@@ -293,7 +273,6 @@ const Player = () => {
       const container = containerRef.current;
       const progressBar = progressRef.current;
       const audio = audioRef.current;
-      const playBtn = playBtnRef.current;
       const containerRect = container.getBoundingClientRect();
       const maxX = containerRect.width;
       const minX = 0;
@@ -314,42 +293,36 @@ const Player = () => {
       positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
       progressBar.style.transition = "none";
-      pauseAudio(audio);
-      setAudioState({ ...audioState, playing: false });
+
+      // Set the new audio time
+      audio.currentTime = (duration * audioProgress) / 100;
+
+      // Update playOptions immediately for Surah component sync during drag
       setPlayOptions({
-        playing: false,
+        playing: audioState.playing,
         currentTime: audio.currentTime,
         duration: audio.duration,
       });
-
-      if (playBtnTimeout.current) {
-        clearTimeout(playBtnTimeout.current);
-      }
-      playBtnTimeout.current = setTimeout(() => {
-        setIsDragging(false);
-        playBtn.click();
-      }, 300);
-      audio.currentTime = (duration * audioProgress) / 100;
     },
-    [audioState, isDragging, lang, positionPointer]
+    [
+      audioState,
+      isDragging,
+      lang,
+      positionPointer,
+      containerRef,
+      pauseAudio,
+      playAudio,
+      pointerRef,
+      progressRef,
+      setAudioState,
+      setPlayOptions,
+    ]
   );
 
   // Reset progress bar when switching tracks
   useEffect(() => {
-    if (!progressRef.current || !pointerRef.current) return;
-    const progress = progressRef.current;
-    const pointer = pointerRef.current;
-    const isRtl = lang === "ar";
-
-    // Immediately reset progress and pointer without transition
-    progress.style.transition = "none";
-    pointer.style.transition = "none";
-    progress.style.width = "0";
-    positionPointer(pointer, -5, isRtl);
-
-    // Force a reflow to ensure the "none" transition takes effect
-    void progress.offsetHeight;
-  }, [playlist[playing].src, lang, positionPointer]);
+    resetProgress();
+  }, [playlist[playing].src, lang, resetProgress]);
 
   // Update progress bar and pointer position
   useEffect(() => {
@@ -362,16 +335,13 @@ const Player = () => {
     )
       return;
 
-    const progress = progressRef.current;
     const audio = audioRef.current;
-    const pointer = pointerRef.current;
     const container = containerRef.current;
     const isRtl = lang === "ar";
 
     // Only update if we have valid duration
     if (!audio.duration) {
-      progress.style.width = "0";
-      positionPointer(pointer, -5, isRtl);
+      resetProgress();
       return;
     }
 
@@ -381,50 +351,61 @@ const Player = () => {
     const maxX = containerRect.width;
 
     if (audioState.playing && !audio.paused && audio.readyState >= 3) {
-      progress.style.width = "100%";
-      progress.style.transition = `width ${timeRemaining}ms linear`;
-
-      if (isRtl) {
-        pointer.style.right = `${maxX - 5}px`;
-        pointer.style.left = "auto";
-        pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
-      } else {
-        pointer.style.left = `${maxX - 5}px`;
-        pointer.style.right = "auto";
-        pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
-      }
+      updateProgressPosition(
+        progressRef.current,
+        pointerRef.current,
+        currentProgress,
+        maxX,
+        isRtl,
+        timeRemaining
+      );
     } else {
-      progress.style.width = `${currentProgress * 100}%`;
-      progress.style.transition = "none";
-
-      if (isRtl) {
-        pointer.style.right = `${maxX * currentProgress - 5}px`;
-        pointer.style.left = "auto";
-        pointer.style.transition = "opacity 300ms ease-out";
-      } else {
-        pointer.style.left = `${maxX * currentProgress - 5}px`;
-        pointer.style.right = "auto";
-        pointer.style.transition = "opacity 300ms ease-out";
-      }
+      updateProgressPosition(
+        progressRef.current,
+        pointerRef.current,
+        currentProgress,
+        maxX,
+        isRtl
+      );
     }
+  }, [
+    audioState,
+    lang,
+    resetProgress,
+    updateProgressPosition,
+    containerRef,
+    pointerRef,
+    progressRef,
+  ]);
 
-    // Cleanup
-    return () => {
-      progress.style.transition = "none";
-      pointer.style.transition = "none";
-    };
-  }, [audioState, lang]);
-
-  // Add/remove mousemove event listener for dragging
+  // Add/remove mousemove and mouseup event listeners for dragging
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => onMouseMove(e);
+    const handleMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+
+        // Resume playback if it was playing before drag
+        if (wasPlayingBeforeDragRef.current && audioRef.current) {
+          playAudio(audioRef.current);
+          setAudioState((prev) => (prev ? { ...prev, playing: true } : null));
+        }
+
+        // Reset the ref
+        wasPlayingBeforeDragRef.current = false;
+      }
+    };
+
     if (isDragging) {
       window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, onMouseMove]);
+  }, [isDragging, onMouseMove, playAudio, setAudioState]);
 
   // Reset the Slider on new Surah
   useEffect(() => {
@@ -438,7 +419,6 @@ const Player = () => {
       return;
     const pointer = pointerRef.current;
     const progress = progressRef.current;
-    const playBtn = playBtnRef.current;
     const isRtl = lang === "ar";
 
     progress.style.width = "0";
@@ -453,11 +433,22 @@ const Player = () => {
 
     progress.style.transition = "none";
     pointer.style.transition = "none";
-    saveData(audioRef.current);
-    if (!audioState.playing) {
-      playBtn.click();
-    }
-  }, [playing, qari, moshaf]);
+    updateStoredData({
+      paused: !playingStateRef.current,
+      currentTime: audioRef.current.currentTime,
+    });
+    // Removed automatic play to prevent loops
+  }, [
+    playing,
+    qari,
+    moshaf,
+    audioState,
+    lang,
+    playingStateRef,
+    pointerRef,
+    progressRef,
+    updateStoredData,
+  ]);
   useEffect(() => {
     if (
       !pointerRef.current ||
@@ -483,30 +474,131 @@ const Player = () => {
 
     progress.style.transition = "none";
     pointer.style.transition = "none";
-  }, [lang]);
+  }, [lang, audioState, pointerRef, progressRef]);
+
+  // Update playOptions regularly when playing (for progress updates)
+  useEffect(() => {
+    if (audioState?.playing && audioRef.current) {
+      progressUpdateInterval.current = setInterval(() => {
+        const audio = audioRef.current;
+        if (audio && !audio.paused) {
+          setPlayOptions({
+            playing: true,
+            currentTime: audio.currentTime,
+            duration: audio.duration || audioState.duration,
+          });
+        }
+      }, 1000);
+    } else {
+      if (progressUpdateInterval.current) {
+        clearInterval(progressUpdateInterval.current);
+        progressUpdateInterval.current = null;
+      }
+    }
+
+    return () => {
+      if (progressUpdateInterval.current) {
+        clearInterval(progressUpdateInterval.current);
+        progressUpdateInterval.current = null;
+      }
+    };
+  }, [audioState?.playing, audioState?.duration, setPlayOptions]);
+
+  // Update playOptions when audioState changes (one-way sync to Surah component)
+  useEffect(() => {
+    if (audioState && audioRef.current) {
+      setPlayOptions({
+        playing: audioState.playing,
+        currentTime: audioRef.current.currentTime,
+        duration: audioState.duration,
+      });
+    }
+  }, [audioState?.playing, audioState?.duration, setPlayOptions]);
+
+  // Listen for external commands (from Surah component)
+  useEffect(() => {
+    const handlePlayerCommand = (event: CustomEvent) => {
+      if (!audioRef.current || !audioState) return;
+
+      const { action, surahIndex } = event.detail;
+      const audio = audioRef.current;
+
+      // If this is a different surah, switch to it first
+      if (surahIndex !== undefined && surahIndex !== playing) {
+        setPlaying(surahIndex);
+
+        // Update localStorage for the track change
+        updateStoredData({
+          playing: surahIndex,
+          currentTime: 0,
+        });
+
+        if (extensionMode) {
+          chrome.runtime.sendMessage({
+            type: "STOP_AUDIO",
+          });
+        }
+
+        // If the action is play, we'll start playing the new track
+        if (action === "play") {
+          // The track change will trigger a re-render, and we'll start playing in the next cycle
+          setTimeout(() => {
+            if (audioRef.current) {
+              playAudio(audioRef.current);
+              setAudioState((prev) =>
+                prev ? { ...prev, playing: true } : null
+              );
+            }
+          }, 100);
+        }
+      } else {
+        // Same surah, just handle play/pause
+        if (action === "play" && !audioState.playing) {
+          playAudio(audio);
+          setAudioState((prev) => (prev ? { ...prev, playing: true } : null));
+        } else if (action === "pause" && audioState.playing) {
+          pauseAudio(audio);
+          setAudioState((prev) => (prev ? { ...prev, playing: false } : null));
+        }
+      }
+    };
+
+    window.addEventListener(
+      "playerCommand",
+      handlePlayerCommand as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "playerCommand",
+        handlePlayerCommand as EventListener
+      );
+    };
+  }, [
+    audioState,
+    playAudio,
+    pauseAudio,
+    setAudioState,
+    playing,
+    setPlaying,
+    updateStoredData,
+    extensionMode,
+  ]);
 
   // Change the volume on slider move
   useEffect(() => {
     if (!audioRef.current) return;
     const audio = audioRef.current;
-    audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
-    const stored = localStorage.getItem(storageKey);
-    const storedData = stored ? JSON.parse(stored) : {};
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        ...storedData,
-        volume: audio.volume,
-      })
-    );
+
+    updateStoredData({ volume: audio.volume });
+
     if (extensionMode) {
       chrome.runtime.sendMessage({
         type: "CHANGE_VOLUME",
         volume: audio.volume,
       });
     }
-  }, [audioVolume]);
+  }, [audioVolume, extensionMode, updateStoredData]);
 
   // Handle Pointer Reposition on Window Resize
   useEffect(() => {
@@ -550,7 +642,7 @@ const Player = () => {
 
     window.addEventListener("resize", handleWindowResize);
     return () => window.removeEventListener("resize", handleWindowResize);
-  }, [lang]);
+  }, [lang, containerRef, pointerRef, setPageWidth]);
 
   // Apply language-based direction to the progress container
   useEffect(() => {
@@ -558,7 +650,7 @@ const Player = () => {
 
     const container = containerRef.current;
     container.style.direction = lang === "ar" ? "rtl" : "ltr";
-  }, [lang]);
+  }, [lang, containerRef]);
 
   // Handle language change while audio is playing
   useEffect(() => {
@@ -615,27 +707,32 @@ const Player = () => {
         }
       }, 10);
     }
-  }, [lang, audioState]);
+  }, [lang, audioState, containerRef, pointerRef, progressRef]);
 
+  // Prevent loading state during language changes
   useEffect(() => {
-    if (
-      audioRef.current &&
-      playBtnRef.current &&
-      audioRef.current.paused !== !playOptions?.playing
-    ) {
-      playBtnRef.current.click();
-    }
-  }, [playOptions?.playing]);
+    // When language changes, ensure loading state is cleared if audio is ready
+    if (audioRef.current && audioRef.current.readyState >= 3) {
+      // Use a small delay to ensure this runs after the track effect
+      const timeoutId = setTimeout(() => {
+        setIsLoading(false);
+      }, 10);
 
-  // Set loading state when src changes
+      return () => clearTimeout(timeoutId);
+    }
+  }, [lang, setIsLoading]);
+
+  // Removed automatic play button clicking to prevent loops
+
+  // Set loading state only when track index changes (not language or other changes)
   useEffect(() => {
     if (!audioRef.current) return;
 
-    // Show loading immediately when switching tracks while playing
+    // Only show loading when switching tracks while playing
     if (!audioRef.current.paused || playingStateRef.current) {
       setIsLoading(true);
     }
-  }, [playlist[playing].src]);
+  }, [playing]); // Only depend on playing index, not playlist content
 
   // Add waiting and playing event handlers
   useEffect(() => {
@@ -729,7 +826,7 @@ const Player = () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [setIsLoading]);
+  }, [setIsLoading, playingStateRef, playAudio]);
 
   return (
     <div ref={playerRef} className="player">
@@ -761,7 +858,11 @@ const Player = () => {
 
           if (loopStateRef.current) {
             if (!audioState) return;
+
+            // Reset audio time
             audio.currentTime = 0;
+
+            // Reset visual progress bar
             progress.style.width = "0";
 
             if (isRtl) {
@@ -774,8 +875,20 @@ const Player = () => {
 
             progress.style.transition = "none";
             pointer.style.transition = "none";
+
+            // Update playOptions for Surah component sync
+            setPlayOptions({
+              playing: true,
+              currentTime: 0,
+              duration: audioState.duration,
+            });
+
+            // Restart playback
             playAudio(audio);
-            setAudioState({ ...audioState });
+            setAudioState({
+              ...audioState,
+              playing: true,
+            });
           } else {
             nextBtn.click();
           }
@@ -824,12 +937,27 @@ const Player = () => {
         >
           <div
             ref={pointerRef}
-            onMouseDown={() =>
-              audioState && audioRef.current?.duration && setIsDragging(true)
-            }
-            onMouseUp={() =>
-              audioState && audioRef.current?.duration && setIsDragging(false)
-            }
+            onMouseDown={() => {
+              if (audioState && audioRef.current?.duration) {
+                wasPlayingBeforeDragRef.current = audioState.playing;
+                setIsDragging(true);
+
+                if (audioState.playing) {
+                  // Pause the audio directly without calling pauseAudio to avoid side effects
+                  audioRef.current.pause();
+
+                  setAudioState((prev) =>
+                    prev ? { ...prev, playing: false } : null
+                  );
+                }
+              }
+            }}
+            onMouseUp={() => {
+              if (audioState && audioRef.current?.duration) {
+                // Let the window mouseUp handler deal with the resume logic
+                // This prevents double handling when releasing over the pointer
+              }
+            }}
             style={{
               display:
                 audioState && audioRef.current?.duration ? "block" : "none",
@@ -858,33 +986,8 @@ const Player = () => {
         >
           {loop ? Icons.loop_btn : Icons.noloop_btn}
         </button>
-        <button
-          onMouseEnter={() => {
-            if (volumePanelTimeout.current) {
-              clearTimeout(volumePanelTimeout.current);
-            }
-            setHoverVolume(true);
-          }}
-          onMouseLeave={() => {
-            if (volumePanelTimeout.current) {
-              clearTimeout(volumePanelTimeout.current);
-            }
-            volumePanelTimeout.current = setTimeout(
-              () => setHoverVolume(false),
-              300
-            );
-          }}
-          className="volume-button"
-          onClick={() => setAudioVolume(audioVolume !== 0 ? 0 : 60)}
-        >
-          {audioVolume == 0
-            ? Icons.muted_btn
-            : audioVolume <= 50
-            ? Icons.midvolume_btn
-            : Icons.highvolume_btn}
-        </button>
-
         <div
+          className="volume-control"
           onMouseEnter={() => {
             if (volumePanelTimeout.current) {
               clearTimeout(volumePanelTimeout.current);
@@ -900,29 +1003,40 @@ const Player = () => {
               300
             );
           }}
-          style={{
-            opacity: 1,
-            visibility: hoverVolume ? "visible" : "hidden",
-            animation: hoverVolume ? "growShrink 300ms ease-in-out" : "none",
-            transition: hoverVolume
-              ? "opacity 300ms ease-in-out" // Immediate transition when showing
-              : "opacity 300ms ease-in-out, visibility 0s 300ms", // Delayed hiding
-          }}
-          className={`volume-panel-wrapper volume-panel-wrapper-${
-            lang == "en" ? "ltr" : "rtl"
-          }`}
         >
-          <Slider
-            orientation="vertical"
-            sx={() => ({
-              color: "#686868",
-            })}
-            valueLabelDisplay="off"
-            value={audioVolume}
-            onChange={(_, newVolume) => {
-              setAudioVolume(newVolume as number);
+          <button
+            className="volume-button"
+            onClick={() => setAudioVolume(audioVolume !== 0 ? 0 : 60)}
+          >
+            {audioVolume == 0
+              ? Icons.muted_btn
+              : audioVolume <= 50
+              ? Icons.midvolume_btn
+              : Icons.highvolume_btn}
+          </button>
+
+          <div
+            style={{
+              opacity: hoverVolume ? 1 : 0,
+              visibility: hoverVolume ? "visible" : "hidden",
+              transition: hoverVolume
+                ? "opacity 300ms ease-in-out" // Immediate transition when showing
+                : "opacity 300ms ease-in-out, visibility 0s 300ms", // Delayed hiding
             }}
-          />
+            className="volume-panel-wrapper"
+          >
+            <Slider
+              orientation="vertical"
+              sx={() => ({
+                color: "#686868",
+              })}
+              valueLabelDisplay="off"
+              value={audioVolume}
+              onChange={(_, newVolume) => {
+                setAudioVolume(newVolume as number);
+              }}
+            />
+          </div>
         </div>
         <div className="progress-btns">
           <button
@@ -955,21 +1069,31 @@ const Player = () => {
                 setPlaying(playing - 1);
               }
             }}
-            style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
-            className="prev-button"
+            className={`prev-button ${lang == "ar" ? "flipped" : ""}`}
           >
             {Icons.prev_btn}
           </button>
           <button
             ref={playBtnRef}
-            onClick={
-              isLoading
-                ? (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }
-                : handlePlayAudio
-            }
+            onClick={(e) => {
+              e.preventDefault();
+              if (isLoading) return;
+
+              if (!audioRef.current || !audioState) return;
+              const audio = audioRef.current;
+
+              if (audioState.playing) {
+                pauseAudio(audio);
+                setAudioState((prev) =>
+                  prev ? { ...prev, playing: false } : null
+                );
+              } else {
+                playAudio(audio);
+                setAudioState((prev) =>
+                  prev ? { ...prev, playing: true } : null
+                );
+              }
+            }}
             className="play-button"
             style={{ pointerEvents: isLoading ? "none" : "auto" }}
           >
@@ -1012,8 +1136,7 @@ const Player = () => {
               }
             }}
             ref={nextBtnRef}
-            style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
-            className="next-button"
+            className={`next-button ${lang == "ar" ? "flipped" : ""}`}
           >
             {Icons.next_btn}
           </button>

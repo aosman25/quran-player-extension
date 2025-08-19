@@ -15,7 +15,6 @@ const Surah = ({ id, name }: SurahData) => {
     playlist,
     lang,
     playOptions,
-    setPlayOptions,
     setSearchResult,
     setCleanedSearchResult,
     isLoading,
@@ -111,9 +110,16 @@ const Surah = ({ id, name }: SurahData) => {
           {playing == surahIndex ? (
             playOptions?.playing ? (
               <button
-                onClick={() =>
-                  setPlayOptions({ ...playOptions, playing: false })
-                }
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  // Send custom event to Player component
+                  window.dispatchEvent(
+                    new CustomEvent("playerCommand", {
+                      detail: { action: "pause", surahIndex },
+                    })
+                  );
+                }}
                 className="icon-btn"
               >
                 {isLoading ? (
@@ -130,9 +136,16 @@ const Surah = ({ id, name }: SurahData) => {
               </button>
             ) : (
               <button
-                onClick={() =>
-                  setPlayOptions({ ...playOptions, playing: true })
-                }
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  // Send custom event to Player component
+                  window.dispatchEvent(
+                    new CustomEvent("playerCommand", {
+                      detail: { action: "play", surahIndex },
+                    })
+                  );
+                }}
                 className="icon-btn"
               >
                 {Icons.play_btn}
@@ -140,7 +153,16 @@ const Surah = ({ id, name }: SurahData) => {
             )
           ) : hovered ? (
             <button
-              onClick={() => setPlayOptions({ ...playOptions, playing: true })}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                // Send custom event to Player component
+                window.dispatchEvent(
+                  new CustomEvent("playerCommand", {
+                    detail: { action: "play", surahIndex },
+                  })
+                );
+              }}
               className="icon-btn"
             >
               {Icons.play_btn}
