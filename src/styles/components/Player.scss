@@ -132,6 +132,35 @@
             &:active {
                 transform: scale(1);
             }
+            
+            /* Special handling for Arabic flipped buttons */
+            &.prev-button, &.next-button {
+                /* Normal state - no transform by default */
+                
+                /* Arabic (RTL) flipped state */
+                &.flipped {
+                    transform: scaleX(-1);
+                    
+                    &:hover {
+                        cursor: pointer;
+                        transform: scaleX(-1) scale(1.1); /* Combine both transforms */
+                    }
+                    &:active {
+                        transform: scaleX(-1) scale(1); /* Combine both transforms */
+                    }
+                }
+                
+                /* Non-Arabic (LTR) normal state */
+                &:not(.flipped) {
+                    &:hover {
+                        cursor: pointer;
+                        transform: scale(1.1); /* Just scale, no flip */
+                    }
+                    &:active {
+                        transform: scale(1); /* Just scale, no flip */
+                    }
+                }
+            }
         }
         .play-button {
             font-size: 40px;
@@ -164,40 +193,39 @@
             }
         }
 
+        .volume-control {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
         .volume-button {
             width: 20px;
-            position: relative;
-            bottom: 2px;
+            /* Removed bottom: 2px to align with other buttons */
         }
-        @keyframes growShrink {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-          }
+
   
         .volume-panel-wrapper {
-            visibility: hidden;
-            opacity: 0;
             position: absolute;
             bottom: 50px;
             display: flex;
             background-color: #f2f2f2;
-            height: 100px ;
+            height: 100px;
+            width: 30px;
             padding: 20px 5px 15px 5px;
             border-radius: 5px;
-            transition: opacity 150ms ease-in;
-        }
-        .volume-panel-wrapper-ltr {
-            left: 12px;
-        }
-        .volume-panel-wrapper-rtl {
-            right: 12px;
+            /* Center relative to the volume-control container */
+            left: 50%;
+            transform: translateX(-50%);
+            /* Ensure stable positioning */
+            z-index: 10;
         }
         .volume-panel-wrapper::before {
             content: "";
             position: absolute;
             bottom: -7px; /* Adjust to position below the main box */
-            left: 16px; /* Adjust to align with the box */
+            left: 50%; /* Center the arrow */
+            transform: translateX(-50%); /* Center the arrow */
             width: 0;
             height: 0;
             border-left: 10px solid transparent;
@@ -258,10 +286,14 @@
             order: 3;
         }
         .volume-panel-wrapper-ltr {
-            left: 3%;
+            /* Mobile: maintain centering */
+            left: 50%;
+            transform: translateX(-50%);
         }
         .volume-panel-wrapper-rtl {
-            right: 3%;
+            /* Mobile: maintain centering */
+            left: 50%;
+            transform: translateX(-50%);
         }
     }
     }

@@ -140,6 +140,7 @@ const Header = () => {
                   onClick={() => {
                     setChooseReciter(false);
                     setSearchResult("");
+                    setCleanedSearchResult("");
                     setTimeout(() => {
                       scroller.scrollTo(
                         String(
@@ -195,6 +196,7 @@ const Header = () => {
                     onClick={() => {
                       setChooseReciter(true);
                       setSearchResult("");
+                      setCleanedSearchResult("");
                       scroll.scrollToTop(scrollOptions);
                     }}
                     className={`${lang == "en" ? "en-font" : "ar-font"}`}

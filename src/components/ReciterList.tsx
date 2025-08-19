@@ -15,6 +15,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     setPlaying,
     setMoshaf,
     setSearchResult,
+    setCleanedSearchResult,
     setPlayOptions,
     storageKey,
     extensionMode,
@@ -65,6 +66,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
             setPlaying(0);
             setMoshaf(topOriginalIndex);
             setSearchResult("");
+            setCleanedSearchResult("");
             if (extensionMode) {
               chrome.runtime.sendMessage({
                 type: "STOP_AUDIO",
