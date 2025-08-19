@@ -14,11 +14,11 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     setQari,
     setPlaying,
     setMoshaf,
-    searchResult,
     setSearchResult,
     setPlayOptions,
     storageKey,
     extensionMode,
+    cleanedSearchResult,
   } = useContext(GlobalStates);
   const availableQaris: JSX.Element[] = [];
   const moshafs: MoshafsType = moshafsData;
@@ -28,7 +28,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
   const reciters = langReciters[firstLetter] || [];
 
   reciters.forEach(({ name, id, search_combs }) => {
-    const match = search_combs.some((n) => n.startsWith(searchResult));
+    const match = search_combs.some((n) => n.startsWith(cleanedSearchResult));
 
     if (match) {
       availableQaris.push(

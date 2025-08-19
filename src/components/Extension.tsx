@@ -20,6 +20,7 @@ const Extension = () => {
     playlist,
     qari,
     pageWidth,
+    cleanedSearchResult,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
   const availableReciters: JSX.Element[] = [];
@@ -82,8 +83,10 @@ const Extension = () => {
         if (
           name[lang as keyof typeof name]
             .toLowerCase()
-            .includes(searchResult.trim().toLowerCase()) ||
-          String(id).includes(searchResult.trim())
+            .replace(/-/g, "")
+            .replace(/'/g, "")
+            .includes(cleanedSearchResult) ||
+          String(id).startsWith(searchResult.trim())
         ) {
           availableSurahs.push(
             <Element name={String(id)}>
@@ -109,7 +112,7 @@ const Extension = () => {
       const reciters = langReciters[firstLetter];
       let match = false;
       reciters.forEach(({ search_combs }) => {
-        if (search_combs.some((n) => n.startsWith(searchResult))) {
+        if (search_combs.some((n) => n.startsWith(cleanedSearchResult))) {
           match = true;
         }
       });

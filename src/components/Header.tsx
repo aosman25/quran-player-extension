@@ -32,6 +32,7 @@ const Header = () => {
     pageWidth,
     isScrolling,
     storageKey,
+    setCleanedSearchResult,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -65,7 +66,8 @@ const Header = () => {
       .replace(/[أإآٱى]/g, (char) => replacements[char] || char)
       .toLowerCase()
       .replace(/-/g, "")
-      .replace(/\s+/g, " ");
+      .replace(/'/g, "")
+      .trim();
   }
 
   useEffect(() => {
@@ -83,7 +85,10 @@ const Header = () => {
           <input
             autoFocus
             value={searchResult}
-            onChange={(e) => setSearchResult(cleanSearchResult(e.target.value))}
+            onChange={(e) => {
+              setSearchResult(e.target.value);
+              setCleanedSearchResult(cleanSearchResult(e.target.value));
+            }}
             type="text"
             className={`${lang == "en" ? "en-font" : "ar-font"}`}
             placeholder={

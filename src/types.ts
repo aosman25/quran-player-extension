@@ -14,6 +14,8 @@ export interface GlobalStatesContext {
     setLoved: React.Dispatch<React.SetStateAction<boolean>>,
     searchResult: string,
     setSearchResult: React.Dispatch<React.SetStateAction<string>>,
+    cleanedSearchResult: string,
+    setCleanedSearchResult: React.Dispatch<React.SetStateAction<string>>,
     chooseReciter: boolean,
     setChooseReciter: React.Dispatch<React.SetStateAction<boolean>>,
     notFound: boolean,

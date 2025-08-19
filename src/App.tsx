@@ -63,6 +63,7 @@ function App() {
     "playing" in storedData ? storedData["playing"] : 0
   );
   const [searchResult, setSearchResult] = useState<string>("");
+  const [cleanedSearchResult, setCleanedSearchResult] = useState<string>("");
   const [chooseReciter, setChooseReciter] = useState<boolean>(false);
   const [notFound, setNotFound] = useState<boolean>(false);
   const [playOptions, setPlayOptions] = useState<PlayOptions>({
@@ -166,6 +167,8 @@ function App() {
         setLoved,
         searchResult,
         setSearchResult,
+        cleanedSearchResult,
+        setCleanedSearchResult,
         chooseReciter,
         setChooseReciter,
         notFound,
