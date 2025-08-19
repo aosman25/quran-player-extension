@@ -17,6 +17,7 @@ const Surah = ({ id, name }: SurahData) => {
     playOptions,
     setPlayOptions,
     setSearchResult,
+    setCleanedSearchResult,
     isLoading,
     storageKey,
   } = useContext<GlobalStatesContext>(GlobalStates);
@@ -42,6 +43,7 @@ const Surah = ({ id, name }: SurahData) => {
     );
 
     setSearchResult("");
+    setCleanedSearchResult("");
   };
   const [hovered, setHovered] = useState(false);
   const surahIndex = playlist.findIndex(({ id: surahId }) => surahId == id);
