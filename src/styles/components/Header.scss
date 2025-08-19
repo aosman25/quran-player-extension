@@ -1,5 +1,5 @@
-@import '../_colors.scss';
-@import '../variables.scss';
+@use '../_colors.scss';
+@use '../variables.scss';
 .header-container {
     width: 100vw;
     height: 100px;
@@ -7,7 +7,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    background-color: $dark-grey;
+    background-color: colors.$dark-grey;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -42,13 +42,13 @@
             width: 100%;
             padding: 5px;
             outline: none;
-            background-color: $dark-grey;
+            background-color: colors.$dark-grey;
             border: none;
             color: white;
             font-weight: bold;
         }
         .lang-switch {
-            color: $silver-gray;
+            color: colors.$silver-gray;
         }
         .lang-switch:hover {
             cursor: pointer;
@@ -68,15 +68,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: $silver-gray;
-            background-color: $dark-grey;
+            color: colors.$silver-gray;
+            background-color: colors.$dark-grey;
             border: none;
             display: flex;
             align-items: center;
             transition: color 200ms;
         }
         button:hover {
-            color: $gold;
+            color: colors.$gold;
         }
     }
     button:hover {
@@ -112,7 +112,7 @@
         align-items: center;
         gap: 10px;
         padding: 15px 10px;
-        background-color: $dark-grey;
+        background-color: colors.$dark-grey;
         box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
         border-radius: 5px;
         z-index: 1;
@@ -123,7 +123,7 @@
 
 }
 
-@media screen and (max-width: $width-breakpoint) {
+@media screen and (max-width: variables.$width-breakpoint) {
     .header-container {
         height: 150px;
         padding-top: 0;

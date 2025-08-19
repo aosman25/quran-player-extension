@@ -11,6 +11,10 @@ import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
 import { animateScroll as scroll, scroller } from "react-scroll";
 
+type ArabicReplacements = {
+  [key: string]: string;
+};
+
 const Header = () => {
   const {
     qari,
@@ -48,6 +52,22 @@ const Header = () => {
   };
   const playlistRef = useRef<Play[]>(playlist);
   const playingRef = useRef<number>(playing);
+  function cleanSearchResult(text: string) {
+    const replacements: ArabicReplacements = {
+      أ: "ا",
+      إ: "ا",
+      آ: "ا",
+      ٱ: "ا",
+      ى: "ي",
+    };
+
+    return text
+      .replace(/[أإآٱى]/g, (char) => replacements[char] || char)
+      .toLowerCase()
+      .replace(/-/g, "")
+      .replace(/\s+/g, " ");
+  }
+
   useEffect(() => {
     playlistRef.current = playlist;
     playingRef.current = playing;
@@ -63,7 +83,7 @@ const Header = () => {
           <input
             autoFocus
             value={searchResult}
-            onChange={(e) => setSearchResult(e.target.value)}
+            onChange={(e) => setSearchResult(cleanSearchResult(e.target.value))}
             type="text"
             className={`${lang == "en" ? "en-font" : "ar-font"}`}
             placeholder={

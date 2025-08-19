@@ -1,6 +1,6 @@
 import Player from "./Player";
 import Surah from "./Surah";
-import { GlobalStatesContext, Play } from "../types";
+import { GlobalStatesContext, Play, ReciterNamesType } from "../types";
 import { useContext, useEffect, useRef } from "react";
 import { GlobalStates } from "../GlobalStates";
 import Header from "./Header";
@@ -9,16 +9,6 @@ import ReciterList from "./ReciterList";
 import "../styles/components/Extension.scss";
 import { Element, scroller } from "react-scroll";
 import NotFound from "./NotFound";
-
-type ReciterName = {
-  id: number;
-  name: string;
-};
-
-type ReciterNamesType = {
-  ar: Record<string, ReciterName[]>;
-  en: Record<string, ReciterName[]>;
-};
 
 const Extension = () => {
   const {
@@ -32,7 +22,7 @@ const Extension = () => {
     pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
-  const avaialbeReciters: JSX.Element[] = [];
+  const availableReciters: JSX.Element[] = [];
   const scrollTimeout = useRef<number | null>(null);
   const playingRef = useRef<number>(playing);
   const playlistRef = useRef<Play[]>(playlist);
@@ -92,8 +82,8 @@ const Extension = () => {
         if (
           name[lang as keyof typeof name]
             .toLowerCase()
-            .startsWith(searchResult.trim().toLowerCase()) ||
-          String(id).startsWith(searchResult.trim())
+            .includes(searchResult.trim().toLowerCase()) ||
+          String(id).includes(searchResult.trim())
         ) {
           availableSurahs.push(
             <Element name={String(id)}>
@@ -117,29 +107,26 @@ const Extension = () => {
 
     Object.keys(langReciters).forEach((firstLetter) => {
       const reciters = langReciters[firstLetter];
-      if (
-        reciters.some(({ name }) =>
-          name.toLowerCase().startsWith(searchResult.trim().toLowerCase())
-        )
-      ) {
-        avaialbeReciters.push(
+      let match = false;
+      reciters.forEach(({ search_combs }) => {
+        if (search_combs.some((n) => n.startsWith(searchResult))) {
+          match = true;
+        }
+      });
+      if (match) {
+        availableReciters.push(
           <ReciterList key={firstLetter} firstLetter={firstLetter} />
         );
       }
     });
   }
-
   return (
     <div>
       <Header />
       {chooseReciter ? (
-        avaialbeReciters.length >= 1 ? (
+        availableReciters.length >= 1 ? (
           <div style={{ pointerEvents: "all" }} className="reciters-grid">
-            {Object.keys(
-              (reciterNames as ReciterNamesType)[lang as keyof ReciterNamesType]
-            ).map((firstLetter) => (
-              <ReciterList key={firstLetter} firstLetter={firstLetter} />
-            ))}
+            {availableReciters}
           </div>
         ) : (
           <NotFound
