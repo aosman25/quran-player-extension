@@ -1,5 +1,5 @@
-@import "../colors.scss";
-@import "../variables.scss";
+@use "../colors.scss";
+@use "../variables.scss";
 .player {
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
@@ -8,7 +8,7 @@
     bottom: 0;
     width: 100vw;
     height: 55px;
-    background-color: $dark-grey;
+    background-color: colors.$dark-grey;
     display: flex;
     padding: 5px;
     gap: 5px;
@@ -18,7 +18,7 @@
         flex-direction: column;
         justify-content: space-around;
         height: 100%;
-        color: $light-gray;
+        color: colors.$light-gray;
         .surah-name {
             font-weight: bold;
         }
@@ -36,16 +36,16 @@
             white-space: nowrap;
 
             .start-timestamp {
-                color: $blue;
+                color: colors.$blue;
             }
             .end-timestamp {
-                color: $light-gray;
+                color: colors.$light-gray;
             }
         }
         .bar-container {
             position: relative;
             width: 100%;
-            background-color: $light-gray;
+            background-color: colors.$light-gray;
             height: 2px;
             cursor: pointer;
              // Expanding the clickable area without affecting the visible height
@@ -81,7 +81,7 @@
             .progress-bar {
                 width: 0;
                 height: 2px;
-                background-color: $blue;
+                background-color: colors.$blue;
             }
             .pointer {
                 position: absolute;
@@ -89,7 +89,7 @@
                 top: -4px;
                 width: 10px;
                 height: 10px;
-                background-color: $blue; 
+                background-color: colors.$blue; 
                 border-radius: 50%; 
                 opacity: 0;
                 transition: opacity 300ms ease-out;  
@@ -217,7 +217,7 @@
     }
 }
 
-@media screen and (max-width: $width-breakpoint) {
+@media screen and (max-width: variables.$width-breakpoint) {
     .player {
         flex-direction: column;
         width: 100%;

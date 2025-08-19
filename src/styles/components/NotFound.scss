@@ -1,4 +1,4 @@
-@import "../colors";
+@use "../colors";
 .not-found-container {
     display: flex;
     flex-direction: column;
@@ -9,6 +9,6 @@
     p {
         margin-top: 10px;
         font-size: 90%;
-        color: $light-gray;
+        color: colors.$light-gray;
     }
 }
