@@ -4,12 +4,13 @@ import { MdPerson3 } from "react-icons/md";
 import { FaBookOpen } from "react-icons/fa";
 import { FaHeadphonesAlt } from "react-icons/fa";
 import Tooltip from "@mui/material/Tooltip";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { GlobalStates } from "../GlobalStates";
-import { GlobalStatesContext, MoshafsType, Language, Play } from "../types";
+import { GlobalStatesContext, MoshafsType, Language } from "../types";
 import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
-import { animateScroll as scroll, scroller } from "react-scroll";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
 type ArabicReplacements = {
   [key: string]: string;
@@ -47,12 +48,13 @@ const Header = () => {
     null
   );
   const moshafs: MoshafsType = moshafsData;
-  const scrollOptions = {
-    duration: 0,
-    smooth: true,
-  };
-  const playlistRef = useRef<Play[]>(playlist);
-  const playingRef = useRef<number>(playing);
+
+  // Use the centralized auto-scroll hook
+  const { scrollToCurrentItem, scrollToTop } = useAutoScroll({
+    playlist,
+    playing,
+    pageWidth,
+  });
   function cleanSearchResult(text: string) {
     const replacements: ArabicReplacements = {
       أ: "ا",
@@ -69,11 +71,6 @@ const Header = () => {
       .replace(/'/g, "")
       .trim();
   }
-
-  useEffect(() => {
-    playlistRef.current = playlist;
-    playingRef.current = playing;
-  }, [playlist, playing]);
   return (
     <div dir="" className="header-container">
       <div>
@@ -141,17 +138,7 @@ const Header = () => {
                     setChooseReciter(false);
                     setSearchResult("");
                     setCleanedSearchResult("");
-                    setTimeout(() => {
-                      scroller.scrollTo(
-                        String(
-                          String(playlistRef.current[playingRef.current]["id"])
-                        ),
-                        {
-                          ...scrollOptions,
-                          offset: pageWidth <= 800 ? -165 : -120,
-                        }
-                      );
-                    }, 0.01);
+                    scrollToCurrentItem(SCROLL_DURATIONS.INSTANT);
                   }}
                 >
                   <FaHeadphonesAlt className="filter-icon" />
@@ -197,7 +184,7 @@ const Header = () => {
                       setChooseReciter(true);
                       setSearchResult("");
                       setCleanedSearchResult("");
-                      scroll.scrollToTop(scrollOptions);
+                      scrollToTop();
                     }}
                     className={`${lang == "en" ? "en-font" : "ar-font"}`}
                   >

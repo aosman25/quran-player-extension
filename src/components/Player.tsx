@@ -10,6 +10,8 @@ import { usePlayerStorage } from "../hooks/usePlayerStorage";
 import { useAudioState } from "../hooks/useAudioState";
 import { useProgressBar } from "../hooks/useProgressBar";
 import { useAudioEvents } from "../hooks/useAudioEvents";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
 dayjs.extend(duration);
 const Player = () => {
@@ -26,10 +28,18 @@ const Player = () => {
     setIsLoading,
     extensionMode,
     storageKey,
+    pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
 
   const { getStoredData, updateStoredData } = usePlayerStorage(storageKey);
   const storedData = getStoredData();
+
+  // Add auto-scroll functionality for smooth navigation
+  const { scrollToCurrentItem } = useAutoScroll({
+    playlist,
+    playing,
+    pageWidth,
+  });
 
   const playerRef = useRef<HTMLDivElement>(null);
   const playBtnRef = useRef<HTMLButtonElement>(null);
@@ -891,6 +901,8 @@ const Player = () => {
             });
           } else {
             nextBtn.click();
+            // Trigger debounced extra smooth scroll for automatic track change
+            scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
           }
         }}
       ></audio>
@@ -1068,6 +1080,8 @@ const Player = () => {
 
                 setPlaying(playing - 1);
               }
+              // Trigger debounced extra smooth scroll for better UX
+              scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
             }}
             className={`prev-button ${lang == "ar" ? "flipped" : ""}`}
           >
@@ -1134,6 +1148,8 @@ const Player = () => {
 
                 setPlaying(playing + 1);
               }
+              // Trigger debounced extra smooth scroll for better UX
+              scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
             }}
             ref={nextBtnRef}
             className={`next-button ${lang == "ar" ? "flipped" : ""}`}
