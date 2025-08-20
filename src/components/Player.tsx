@@ -56,6 +56,7 @@ const Player = () => {
   const [hoverVolume, setHoverVolume] = useState(false);
   const wasPlayingBeforeDragRef = useRef(false);
   const volumePanelTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSeekingRef = useRef(false); // Track when manual seeking is happening
 
   const { audioState, setAudioState, playingStateRef, playAudio, pauseAudio } =
     useAudioState({
@@ -64,30 +65,25 @@ const Player = () => {
       onPlayingChange: undefined, // Remove this callback to prevent circular updates
     });
 
-  const {
-    containerRef,
-    pointerRef,
-    progressRef,
-    resetProgress,
-    updateProgressPosition,
-  } = useProgressBar({
-    lang,
-    audioState,
-    onProgressChange: (time) => {
-      if (!audioRef.current || !audioState) return;
-      const audio = audioRef.current;
-      audio.currentTime = time;
-      pauseAudio(audio);
-      setAudioState({ ...audioState, playing: false });
+  const { containerRef, pointerRef, progressRef, resetProgress } =
+    useProgressBar({
+      lang,
+      audioState,
+      onProgressChange: (time) => {
+        if (!audioRef.current || !audioState) return;
+        const audio = audioRef.current;
+        audio.currentTime = time;
+        pauseAudio(audio);
+        setAudioState({ ...audioState, playing: false });
 
-      // Resume playback after a short delay
-      setTimeout(() => {
-        if (!audioRef.current) return;
-        playAudio(audioRef.current);
-        setAudioState({ ...audioState, playing: true });
-      }, 50);
-    },
-  });
+        // Resume playback after a short delay
+        setTimeout(() => {
+          if (!audioRef.current) return;
+          playAudio(audioRef.current);
+          setAudioState({ ...audioState, playing: true });
+        }, 50);
+      },
+    });
 
   useAudioEvents({
     audioRef,
@@ -215,14 +211,19 @@ const Player = () => {
 
       const audioProgress = (clickX / maxX) * 100;
 
-      // Immediately update pointer and progress without transition
-      pointer.style.transition = "none";
-      progressBar.style.transition = "none";
-      positionPointer(pointer, clickX - 5, isRtl);
-      progressBar.style.width = `${audioProgress}%`;
-
       // Store the playing state before pausing
       const wasPlaying = audioState.playing;
+
+      // Mark that we're seeking to prevent progress updates
+      isSeekingRef.current = true;
+
+      // Stop any ongoing transitions immediately
+      pointer.style.transition = "none";
+      progressBar.style.transition = "none";
+
+      // Set new position immediately
+      positionPointer(pointer, clickX - 5, isRtl);
+      progressBar.style.width = `${audioProgress}%`;
 
       // Set new audio time
       audio.currentTime = (duration * audioProgress) / 100;
@@ -246,9 +247,15 @@ const Player = () => {
           playAudio(audio);
           setAudioState({ ...audioState, playing: true });
         }
-        // Restore transitions after playback resumes
+
+        // Restore basic transitions (but not progress animation)
         pointer.style.transition = "opacity 300ms ease-out";
-        progressBar.style.transition = "width 100ms linear";
+        progressBar.style.transition = "none"; // Keep transition off to prevent auto-completion
+
+        // Clear seeking flag after a longer delay to ensure state is stable
+        setTimeout(() => {
+          isSeekingRef.current = false;
+        }, 100);
       }, 50);
     },
     [
@@ -336,6 +343,9 @@ const Player = () => {
 
   // Update progress bar and pointer position
   useEffect(() => {
+    // Don't update progress while dragging or seeking to prevent conflicts
+    if (isDragging || isSeekingRef.current) return;
+
     if (
       !progressRef.current ||
       !pointerRef.current ||
@@ -348,6 +358,8 @@ const Player = () => {
     const audio = audioRef.current;
     const container = containerRef.current;
     const isRtl = lang === "ar";
+    const progress = progressRef.current;
+    const pointer = pointerRef.current;
 
     // Only update if we have valid duration
     if (!audio.duration) {
@@ -355,34 +367,30 @@ const Player = () => {
       return;
     }
 
-    const timeRemaining = (audio.duration - audio.currentTime) * 1000;
     const currentProgress = audio.currentTime / audio.duration;
     const containerRect = container.getBoundingClientRect();
     const maxX = containerRect.width;
 
-    if (audioState.playing && !audio.paused && audio.readyState >= 3) {
-      updateProgressPosition(
-        progressRef.current,
-        pointerRef.current,
-        currentProgress,
-        maxX,
-        isRtl,
-        timeRemaining
-      );
+    // Reset any existing transitions first
+    progress.style.transition = "none";
+    pointer.style.transition = "none";
+
+    // Always set static position - no auto-completion animations
+
+    progress.style.width = `${currentProgress * 100}%`;
+    if (isRtl) {
+      pointer.style.right = `${maxX * currentProgress - 5}px`;
+      pointer.style.left = "auto";
     } else {
-      updateProgressPosition(
-        progressRef.current,
-        pointerRef.current,
-        currentProgress,
-        maxX,
-        isRtl
-      );
+      pointer.style.left = `${maxX * currentProgress - 5}px`;
+      pointer.style.right = "auto";
     }
+    pointer.style.transition = "opacity 300ms ease-out";
   }, [
     audioState,
     lang,
+    isDragging, // Add isDragging to dependencies
     resetProgress,
-    updateProgressPosition,
     containerRef,
     pointerRef,
     progressRef,
@@ -401,8 +409,11 @@ const Player = () => {
           setAudioState((prev) => (prev ? { ...prev, playing: true } : null));
         }
 
-        // Reset the ref
-        wasPlayingBeforeDragRef.current = false;
+        // Reset the refs after a longer delay to ensure all updates are complete
+        setTimeout(() => {
+          wasPlayingBeforeDragRef.current = false;
+          isSeekingRef.current = false;
+        }, 200);
       }
     };
 
@@ -417,8 +428,11 @@ const Player = () => {
     };
   }, [isDragging, onMouseMove, playAudio, setAudioState]);
 
-  // Reset the Slider on new Surah
+  // Reset the Slider on new Surah (consolidated to prevent conflicts)
   useEffect(() => {
+    // Don't reset during drag operations
+    if (isDragging) return;
+
     if (
       !pointerRef.current ||
       !progressRef.current ||
@@ -427,78 +441,36 @@ const Player = () => {
       !audioRef.current
     )
       return;
-    const pointer = pointerRef.current;
-    const progress = progressRef.current;
-    const isRtl = lang === "ar";
 
-    progress.style.width = "0";
+    resetProgress();
 
-    if (isRtl) {
-      pointer.style.right = `-5px`;
-      pointer.style.left = "auto";
-    } else {
-      pointer.style.left = `-5px`;
-      pointer.style.right = "auto";
-    }
-
-    progress.style.transition = "none";
-    pointer.style.transition = "none";
     updateStoredData({
       paused: !playingStateRef.current,
       currentTime: audioRef.current.currentTime,
     });
-    // Removed automatic play to prevent loops
   }, [
     playing,
     qari,
     moshaf,
-    audioState,
-    lang,
+    isDragging, // Add isDragging to prevent resets during drag
+    resetProgress,
     playingStateRef,
-    pointerRef,
-    progressRef,
     updateStoredData,
   ]);
-  useEffect(() => {
-    if (
-      !pointerRef.current ||
-      !progressRef.current ||
-      !audioState ||
-      !playBtnRef.current ||
-      !audioRef.current
-    )
-      return;
-    const pointer = pointerRef.current;
-    const progress = progressRef.current;
-    const isRtl = lang === "ar";
-
-    progress.style.width = "0";
-
-    if (isRtl) {
-      pointer.style.right = `-5px`;
-      pointer.style.left = "auto";
-    } else {
-      pointer.style.left = `-5px`;
-      pointer.style.right = "auto";
-    }
-
-    progress.style.transition = "none";
-    pointer.style.transition = "none";
-  }, [lang, audioState, pointerRef, progressRef]);
 
   // Update playOptions regularly when playing (for progress updates)
   useEffect(() => {
     if (audioState?.playing && audioRef.current) {
       progressUpdateInterval.current = setInterval(() => {
         const audio = audioRef.current;
-        if (audio && !audio.paused) {
+        if (audio && !audio.paused && !isDragging && !isSeekingRef.current) {
           setPlayOptions({
             playing: true,
             currentTime: audio.currentTime,
             duration: audio.duration || audioState.duration,
           });
         }
-      }, 1000);
+      }, 100); // More frequent updates for smoother progress
     } else {
       if (progressUpdateInterval.current) {
         clearInterval(progressUpdateInterval.current);
@@ -516,14 +488,19 @@ const Player = () => {
 
   // Update playOptions when audioState changes (one-way sync to Surah component)
   useEffect(() => {
-    if (audioState && audioRef.current) {
+    if (
+      audioState &&
+      audioRef.current &&
+      !isDragging &&
+      !isSeekingRef.current
+    ) {
       setPlayOptions({
         playing: audioState.playing,
         currentTime: audioRef.current.currentTime,
         duration: audioState.duration,
       });
     }
-  }, [audioState?.playing, audioState?.duration, setPlayOptions]);
+  }, [audioState?.playing, audioState?.duration, setPlayOptions, isDragging]);
 
   // Listen for external commands (from Surah component)
   useEffect(() => {
@@ -953,6 +930,7 @@ const Player = () => {
               if (audioState && audioRef.current?.duration) {
                 wasPlayingBeforeDragRef.current = audioState.playing;
                 setIsDragging(true);
+                isSeekingRef.current = true; // Mark as seeking during drag
 
                 if (audioState.playing) {
                   // Pause the audio directly without calling pauseAudio to avoid side effects

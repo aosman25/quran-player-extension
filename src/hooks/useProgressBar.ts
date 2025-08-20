@@ -22,34 +22,7 @@ export const useProgressBar = ({ lang, audioState, onProgressChange }: UseProgre
     }
   }, []);
 
-  const updateProgressPosition = useCallback((
-    progress: HTMLDivElement,
-    pointer: HTMLDivElement,
-    currentProgress: number,
-    maxX: number,
-    isRtl: boolean,
-    timeRemaining?: number
-  ) => {
-    if (timeRemaining !== undefined) {
-      // Continuous playback animation
-      progress.style.width = "100%";
-      progress.style.transition = `width ${timeRemaining}ms linear`;
-
-      if (isRtl) {
-        pointer.style.right = `${maxX - 5}px`;
-        pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
-      } else {
-        pointer.style.left = `${maxX - 5}px`;
-        pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
-      }
-    } else {
-      // Static position
-      progress.style.width = `${currentProgress * 100}%`;
-      progress.style.transition = "none";
-      positionPointer(pointer, maxX * currentProgress - 5, isRtl);
-      pointer.style.transition = "opacity 300ms ease-out";
-    }
-  }, [positionPointer]);
+  // Removed updateProgressPosition - no longer needed as we handle progress manually
 
   const resetProgress = useCallback(() => {
     if (!progressRef.current || !pointerRef.current) return;
@@ -95,7 +68,6 @@ export const useProgressBar = ({ lang, audioState, onProgressChange }: UseProgre
     progressRef,
     isDraggingRef,
     positionPointer,
-    updateProgressPosition,
     resetProgress,
     handleProgressClick,
   };

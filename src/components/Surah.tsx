@@ -73,21 +73,9 @@ const Surah = ({ id, name }: SurahData) => {
       const progressBar: HTMLElement = progressBarRef.current;
       const progress = (playOptions.currentTime / playOptions.duration) * 100;
 
-      // Set initial position without transition
+      // Always set static position - no auto-completion animations
       progressBar.style.transition = "none";
       progressBar.style.width = `${progress}%`;
-
-      // Apply transition if playing
-      if (playOptions.playing) {
-        const timeRemaining =
-          (playOptions.duration - playOptions.currentTime) * 1000;
-        setTimeout(() => {
-          progressBar.style.transition = `width ${timeRemaining}ms linear`;
-        }, 1);
-        setTimeout(() => {
-          progressBar.style.width = "100%";
-        }, 1);
-      }
     }
   }, [playOptions.currentTime, playOptions.duration, playOptions.playing]);
 
