@@ -6,6 +6,8 @@ import dayjs from "dayjs";
 import Slider from "@mui/material/Slider";
 import duration from "dayjs/plugin/duration";
 import { Icons } from "./Icons";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
 dayjs.extend(duration);
 const Player = () => {
@@ -23,6 +25,7 @@ const Player = () => {
     setIsLoading,
     extensionMode,
     storageKey,
+    pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
 
   const stored = localStorage.getItem(storageKey);
@@ -30,6 +33,13 @@ const Player = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
+  // Add auto-scroll functionality for smooth navigation
+  const { scrollToCurrentItem } = useAutoScroll({
+    playlist,
+    playing,
+    pageWidth,
+  });
+
   const playerRef = useRef<HTMLDivElement>(null);
   const playBtnRef = useRef<HTMLButtonElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
@@ -778,6 +788,8 @@ const Player = () => {
             setAudioState({ ...audioState });
           } else {
             nextBtn.click();
+            // Trigger debounced extra smooth scroll for automatic track change
+            scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
           }
         }}
       ></audio>
@@ -954,6 +966,8 @@ const Player = () => {
 
                 setPlaying(playing - 1);
               }
+              // Trigger debounced extra smooth scroll for better UX
+              scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
             }}
             style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
             className="prev-button"
@@ -1010,6 +1024,8 @@ const Player = () => {
 
                 setPlaying(playing + 1);
               }
+              // Trigger debounced extra smooth scroll for better UX
+              scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
             }}
             ref={nextBtnRef}
             style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
