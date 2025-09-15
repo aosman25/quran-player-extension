@@ -38,14 +38,18 @@ const Extension = () => {
     // Setup auto-scroll behavior on user activity
     return setupAutoScrollOnUserActivity(surahsListContainerRef);
   }, [setupAutoScrollOnUserActivity]);
+  useEffect(() => {
+    scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
+  }, []);
 
   useEffect(() => {
-    scrollToCurrentItem(SCROLL_DURATIONS.INSTANT);
-  }, [lang, qari, chooseReciter, scrollToCurrentItem]);
+    scrollToCurrentItem(0, SCROLL_DURATIONS.INSTANT);
+  }, [qari, chooseReciter, scrollToCurrentItem]);
 
   useEffect(() => {
-    scrollToCurrentItem(SCROLL_DURATIONS.AUTO_SCROLL_DELAY);
-  }, [playing, playlist, scrollToCurrentItem]);
+    scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
+  }, [lang, scrollToCurrentItem]);
+
   if (!chooseReciter) {
     surahsList.forEach(
       ({ id, name, start_page, end_page, makkia, type }, index) => {

@@ -15,7 +15,7 @@ interface UseAutoScrollProps {
 }
 
 interface UseAutoScrollReturn {
-  scrollToCurrentItem: (delay?: number) => void;
+  scrollToCurrentItem: (playingId: number, delay?: number) => void;
   scrollToTop: () => void;
   setupAutoScrollOnUserActivity: (containerRef: React.RefObject<HTMLElement>) => () => void;
 }
@@ -43,13 +43,13 @@ export const useAutoScroll = ({
   /**
    * Scroll to the currently playing item with debouncing to prevent spam
    */
-  const scrollToCurrentItem = useCallback((delay: number = 0) => {
+  const scrollToCurrentItem = useCallback((playingId: number, delay: number = 0) => {
     const executeScroll = () => {
       if (playlistRef.current.length === 0 || playingRef.current < 0) {
         return;
       }
 
-      const currentItem = playlistRef.current[playingRef.current];
+      const currentItem = playlistRef.current[playingId];
       if (!currentItem) return;
 
       const targetId = String(currentItem.id);
@@ -115,7 +115,7 @@ export const useAutoScroll = ({
         if (containerRef.current) {
           containerRef.current.style.pointerEvents = "initial";
         }
-        scrollToCurrentItem();
+        scrollToCurrentItem(playingRef.current, SCROLL_DURATIONS.SMOOTH);
       }, SCROLL_DURATIONS.SCROLL_TIMEOUT);
     };
 

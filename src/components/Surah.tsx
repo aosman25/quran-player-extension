@@ -6,6 +6,8 @@ import { GlobalStatesContext } from "../types";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { Icons } from "./Icons";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
 dayjs.extend(duration);
 
@@ -20,12 +22,19 @@ const Surah = ({ id, name }: SurahData) => {
     setCleanedSearchResult,
     isLoading,
     storageKey,
+    pageWidth,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const { setPlaying, extensionMode } =
     useContext<GlobalStatesContext>(GlobalStates);
+  const { scrollToCurrentItem } = useAutoScroll({
+    playlist,
+    playing,
+    pageWidth,
+  });
   const onClick = () => {
     const surahPlaying = playlist.findIndex(({ id: surahId }) => surahId == id);
     setPlaying(surahPlaying);
+    scrollToCurrentItem(surahPlaying, SCROLL_DURATIONS.AUTO_SCROLL_DELAY);
     if (extensionMode) {
       chrome.runtime.sendMessage({
         type: "STOP_AUDIO",

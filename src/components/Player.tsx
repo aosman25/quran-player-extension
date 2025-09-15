@@ -788,8 +788,6 @@ const Player = () => {
             setAudioState({ ...audioState });
           } else {
             nextBtn.click();
-            // Trigger debounced extra smooth scroll for automatic track change
-            scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
           }
         }}
       ></audio>
@@ -952,6 +950,10 @@ const Player = () => {
                 );
 
                 setPlaying(playlist.length - 1);
+                scrollToCurrentItem(
+                  playlist.length - 1,
+                  SCROLL_DURATIONS.EXTRA_SMOOTH
+                );
               } else {
                 const stored = localStorage.getItem(storageKey);
                 const extensionData = stored ? JSON.parse(stored) : {};
@@ -965,9 +967,9 @@ const Player = () => {
                 );
 
                 setPlaying(playing - 1);
+                scrollToCurrentItem(playing - 1, SCROLL_DURATIONS.EXTRA_SMOOTH);
               }
               // Trigger debounced extra smooth scroll for better UX
-              scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
             }}
             style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
             className="prev-button"
@@ -1010,6 +1012,7 @@ const Player = () => {
                 );
 
                 setPlaying(0);
+                scrollToCurrentItem(0, SCROLL_DURATIONS.EXTRA_SMOOTH);
               } else {
                 const stored = localStorage.getItem(storageKey);
                 const storedData = stored ? JSON.parse(stored) : {};
@@ -1023,9 +1026,9 @@ const Player = () => {
                 );
 
                 setPlaying(playing + 1);
+                scrollToCurrentItem(playing + 1, SCROLL_DURATIONS.EXTRA_SMOOTH);
               }
               // Trigger debounced extra smooth scroll for better UX
-              scrollToCurrentItem(SCROLL_DURATIONS.EXTRA_SMOOTH);
             }}
             ref={nextBtnRef}
             style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
