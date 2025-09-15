@@ -103,6 +103,19 @@ const Player = () => {
     }
   };
 
+  const onMouseEnterVolume = () => {
+    if (volumePanelTimeout.current) {
+      clearTimeout(volumePanelTimeout.current);
+    }
+    setHoverVolume(true);
+  };
+
+  const onMouseLeaveVolume = () => {
+    if (volumePanelTimeout.current) {
+      clearTimeout(volumePanelTimeout.current);
+    }
+    volumePanelTimeout.current = setTimeout(() => setHoverVolume(false), 300);
+  };
   // Helper function to position pointer based on language
   const positionPointer = useCallback(
     (pointer: HTMLDivElement, x: number, isRtl: boolean) => {
@@ -868,72 +881,39 @@ const Player = () => {
         >
           {loop ? Icons.loop_btn : Icons.noloop_btn}
         </button>
-        <button
-          onMouseEnter={() => {
-            if (volumePanelTimeout.current) {
-              clearTimeout(volumePanelTimeout.current);
-            }
-            setHoverVolume(true);
-          }}
-          onMouseLeave={() => {
-            if (volumePanelTimeout.current) {
-              clearTimeout(volumePanelTimeout.current);
-            }
-            volumePanelTimeout.current = setTimeout(
-              () => setHoverVolume(false),
-              300
-            );
-          }}
-          className="volume-button"
-          onClick={() => setAudioVolume(audioVolume !== 0 ? 0 : 60)}
-        >
-          {audioVolume == 0
-            ? Icons.muted_btn
-            : audioVolume <= 50
-            ? Icons.midvolume_btn
-            : Icons.highvolume_btn}
-        </button>
-
-        <div
-          onMouseEnter={() => {
-            if (volumePanelTimeout.current) {
-              clearTimeout(volumePanelTimeout.current);
-            }
-            setHoverVolume(true);
-          }}
-          onMouseLeave={() => {
-            if (volumePanelTimeout.current) {
-              clearTimeout(volumePanelTimeout.current);
-            }
-            volumePanelTimeout.current = setTimeout(
-              () => setHoverVolume(false),
-              300
-            );
-          }}
-          style={{
-            opacity: 1,
-            visibility: hoverVolume ? "visible" : "hidden",
-            animation: hoverVolume ? "growShrink 300ms ease-in-out" : "none",
-            transition: hoverVolume
-              ? "opacity 300ms ease-in-out" // Immediate transition when showing
-              : "opacity 300ms ease-in-out, visibility 0s 300ms", // Delayed hiding
-          }}
-          className={`volume-panel-wrapper volume-panel-wrapper-${
-            lang == "en" ? "ltr" : "rtl"
-          }`}
-        >
-          <Slider
-            orientation="vertical"
-            sx={() => ({
-              color: "#686868",
-            })}
-            valueLabelDisplay="off"
-            value={audioVolume}
-            onChange={(_, newVolume) => {
-              setAudioVolume(newVolume as number);
-            }}
-          />
+        <div className="volume-box">
+          <div
+            onMouseEnter={hoverVolume ? onMouseEnterVolume : undefined}
+            onMouseLeave={onMouseLeaveVolume}
+            style={hoverVolume ? { opacity: 1, visibility: "initial" } : {}}
+            className="volume-panel-wrapper"
+          >
+            <Slider
+              orientation="vertical"
+              sx={() => ({
+                color: "#686868",
+              })}
+              valueLabelDisplay="off"
+              value={audioVolume}
+              onChange={(_, newVolume) => {
+                setAudioVolume(newVolume as number);
+              }}
+            />
+          </div>
+          <button
+            onMouseEnter={onMouseEnterVolume}
+            onMouseLeave={onMouseLeaveVolume}
+            className="volume-button"
+            onClick={() => setAudioVolume(audioVolume !== 0 ? 0 : 60)}
+          >
+            {audioVolume == 0
+              ? Icons.muted_btn
+              : audioVolume <= 50
+              ? Icons.midvolume_btn
+              : Icons.highvolume_btn}
+          </button>
         </div>
+
         <div className="progress-btns">
           <button
             onClick={() => {
@@ -971,8 +951,7 @@ const Player = () => {
               }
               // Trigger debounced extra smooth scroll for better UX
             }}
-            style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
-            className="prev-button"
+            className={lang == "ar" ? "mirror-btn" : ""}
           >
             {Icons.prev_btn}
           </button>
@@ -1031,8 +1010,7 @@ const Player = () => {
               // Trigger debounced extra smooth scroll for better UX
             }}
             ref={nextBtnRef}
-            style={lang == "ar" ? { transform: "scaleX(-1)" } : {}}
-            className="next-button"
+            className={lang == "ar" ? "mirror-btn" : ""}
           >
             {Icons.next_btn}
           </button>

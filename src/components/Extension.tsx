@@ -38,12 +38,12 @@ const Extension = () => {
     // Setup auto-scroll behavior on user activity
     return setupAutoScrollOnUserActivity(surahsListContainerRef);
   }, [setupAutoScrollOnUserActivity]);
-  useEffect(() => {
-    scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
-  }, []);
 
   useEffect(() => {
-    scrollToCurrentItem(0, SCROLL_DURATIONS.INSTANT);
+    setTimeout(
+      () => scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT),
+      20
+    );
   }, [qari, chooseReciter, scrollToCurrentItem]);
 
   useEffect(() => {
