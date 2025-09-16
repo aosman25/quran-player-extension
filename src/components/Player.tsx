@@ -66,11 +66,28 @@ const Player = () => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [, setNow] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isPotentialDrag, setIsPotentialDrag] = useState<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
+  const wasPlayingBeforeDragRef = useRef<boolean>(false);
+  const dragStartPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const hasDraggedRef = useRef<boolean>(false);
+
   const [hoverVolume, setHoverVolume] = useState<boolean>(false);
   const componentLoadedRef = useRef<boolean>(false);
   const audioInitializedRef = useRef<boolean>(
     "paused" in storedData && !storedData.paused ? false : true
   );
+  const previousLangRef = useRef<string>(lang);
+  const previousAudioStateRef = useRef<{
+    playing: boolean;
+    duration: number;
+  } | null>(null);
+  const lastDragEndTime = useRef<number>(0);
+  const lastCanPlayTime = useRef<number>(0);
+  const lastPlayingTime = useRef<number>(0);
+  const lastPlayOptionsSyncTime = useRef<number>(0);
+  const previousPlayOptionsPlaying = useRef<boolean | undefined>(undefined);
+  const cleanupInProgress = useRef<boolean>(false);
   const saveData = (audio: HTMLAudioElement) => {
     const stored = localStorage.getItem(storageKey);
     const storedData = stored ? JSON.parse(stored) : {};
@@ -268,6 +285,9 @@ const Player = () => {
 
       const audioProgress = (clickX / maxX) * 100;
 
+      // Store the current playing state before making changes
+      const wasPlayingBeforeClick = audioState.playing && !audio.paused;
+
       // Immediately update pointer and progress without transition
       pointer.style.transition = "none";
       progressBar.style.transition = "none";
@@ -276,6 +296,15 @@ const Player = () => {
 
       // Set new audio time
       audio.currentTime = (duration * audioProgress) / 100;
+
+      // Sync with extension audio if in extension mode
+      if (extensionMode) {
+        chrome.runtime.sendMessage({
+          type: "SEEK_AUDIO",
+          currentTime: audio.currentTime,
+        });
+      }
+
       pauseAudio(audio);
       setAudioState({ ...audioState, playing: false });
       setPlayOptions({
@@ -284,16 +313,19 @@ const Player = () => {
         duration: audio.duration,
       });
 
-      // Resume playback after a very short delay
+      // Resume playback after a very short delay only if it was playing before
       if (playBtnTimeout.current) {
         clearTimeout(playBtnTimeout.current);
       }
       playBtnTimeout.current = setTimeout(() => {
-        playBtn.click();
-        // Restore transitions after playback resumes
+        if (wasPlayingBeforeClick) {
+          playBtn.click();
+        }
+        // Restore transitions after operation completes
         pointer.style.transition = "opacity 300ms ease-out";
         progressBar.style.transition = "width 100ms linear";
       }, 50);
+      saveData(audio);
     },
     [audioState, lang, positionPointer]
   );
@@ -301,14 +333,27 @@ const Player = () => {
   // Handle mouse move during drag
   const onMouseMove = useCallback(
     (e: MouseEvent) => {
+      // Check if we should start dragging based on mouse movement threshold
+      if (dragStartPositionRef.current && !isDraggingRef.current) {
+        const deltaX = Math.abs(e.clientX - dragStartPositionRef.current.x);
+        const deltaY = Math.abs(e.clientY - dragStartPositionRef.current.y);
+        const dragThreshold = 5; // pixels
+
+        if (deltaX > dragThreshold || deltaY > dragThreshold) {
+          // Start dragging
+          isDraggingRef.current = true;
+          setIsDragging(true);
+          hasDraggedRef.current = true;
+        }
+      }
+
       if (
+        !isDraggingRef.current ||
+        !audioState ||
         !containerRef.current ||
         !pointerRef.current ||
         !progressRef.current ||
-        !audioRef.current ||
-        !audioState ||
-        !playBtnRef.current ||
-        !isDragging
+        !audioRef.current
       )
         return;
 
@@ -316,15 +361,13 @@ const Player = () => {
       const container = containerRef.current;
       const progressBar = progressRef.current;
       const audio = audioRef.current;
-      const playBtn = playBtnRef.current;
+      const { duration } = audioState;
       const containerRect = container.getBoundingClientRect();
       const maxX = containerRect.width;
       const minX = 0;
       const isRtl = lang === "ar";
 
-      const { duration } = audioState;
       let moveX;
-
       if (isRtl) {
         moveX = containerRect.right - e.clientX;
       } else {
@@ -334,34 +377,160 @@ const Player = () => {
       const clickX = Math.max(minX, Math.min(maxX, moveX));
       const audioProgress = (clickX / maxX) * 100;
 
+      // Update UI immediately during drag
       positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
       progressBar.style.transition = "none";
-      pauseAudio(audio);
-      setAudioState({ ...audioState, playing: false });
-      setPlayOptions({
-        playing: false,
-        currentTime: audio.currentTime,
-        duration: audio.duration,
-      });
+      pointer.style.transition = "none";
 
-      if (playBtnTimeout.current) {
-        clearTimeout(playBtnTimeout.current);
-      }
-      playBtnTimeout.current = setTimeout(() => {
-        setIsDragging(false);
-        playBtn.click();
-      }, 300);
+      // Update audio time without triggering play/pause cycles
       audio.currentTime = (duration * audioProgress) / 100;
+
+      // Sync with extension audio if in extension mode
+      if (extensionMode) {
+        chrome.runtime.sendMessage({
+          type: "SEEK_AUDIO",
+          currentTime: audio.currentTime,
+        });
+      }
+
+      saveData(audio);
     },
-    [audioState, isDragging, lang, positionPointer]
+    [audioState, lang, positionPointer]
   );
 
-  // Reset progress bar when switching tracks
+  // Handle mouse down on progress bar for smooth dragging
+  const onProgressBarMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!audioState || !audioRef.current?.duration) return;
+
+      // Store initial mouse position and playing state
+      dragStartPositionRef.current = { x: e.clientX, y: e.clientY };
+      wasPlayingBeforeDragRef.current =
+        audioState.playing && !audioRef.current.paused;
+      hasDraggedRef.current = false;
+      setIsPotentialDrag(true);
+
+      // Prevent the click event from firing immediately
+      e.preventDefault();
+    },
+    [audioState]
+  );
+
+  // Handle mouse up to end dragging
+  const onMouseUp = useCallback(
+    (e?: MouseEvent) => {
+      if (!audioRef.current) return;
+      // Handle click if we haven't dragged
+      if (dragStartPositionRef.current && !hasDraggedRef.current && e) {
+        dragStartPositionRef.current = null;
+        // Simulate a click event
+        if (containerRef.current) {
+          const syntheticEvent = {
+            clientX: e.clientX,
+            clientY: e.clientY,
+            preventDefault: () => {},
+            stopPropagation: () => {},
+          } as React.MouseEvent<HTMLDivElement>;
+          onMouseClick(syntheticEvent);
+        }
+        return;
+      }
+
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        setIsDragging(false);
+        lastDragEndTime.current = Date.now();
+
+        // Resume playback if it was playing before dragging
+        if (audioRef.current && audioState) {
+          setTimeout(() => {
+            if (audioRef.current && audioRef.current.paused) {
+              playAudio(audioRef.current);
+              setAudioState({ ...audioState, playing: true });
+              setPlayOptions({
+                playing: true,
+                currentTime: audioRef.current.currentTime,
+                duration: audioRef.current.duration,
+              });
+              playingStateRef.current = true;
+
+              // Restart the interval for progress updates
+              if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+              }
+              intervalRef.current = setInterval(() => {
+                setNow((now) => now + 1);
+                setPlayOptions({
+                  playing: playingStateRef.current,
+                  currentTime: audioRef.current!.currentTime,
+                  duration: audioRef.current!.duration,
+                });
+                if (!extensionMode) {
+                  const stored = localStorage.getItem(storageKey);
+                  const storedData = stored ? JSON.parse(stored) : {};
+                  localStorage.setItem(
+                    storageKey,
+                    JSON.stringify({
+                      ...storedData,
+                    })
+                  );
+                }
+              }, 1000);
+            }
+          }, 100); // Small delay to ensure drag state is fully cleared
+        }
+
+        // Restore transitions after drag ends
+        if (progressRef.current && pointerRef.current) {
+          setTimeout(() => {
+            if (progressRef.current && pointerRef.current) {
+              progressRef.current.style.transition = "width 100ms linear";
+              pointerRef.current.style.transition = "opacity 300ms ease-out";
+            }
+          }, 50);
+        }
+      }
+
+      // Reset drag state
+      dragStartPositionRef.current = null;
+      hasDraggedRef.current = false;
+      setIsPotentialDrag(false);
+      saveData(audioRef.current);
+    },
+    [audioState, playAudio, setAudioState, setPlayOptions, onMouseClick]
+  );
+
+  // Add/remove mouse event listeners for dragging
   useEffect(() => {
-    if (!progressRef.current || !pointerRef.current) return;
+    const handleMouseMove = (e: MouseEvent) => onMouseMove(e);
+    const handleMouseUp = (e: MouseEvent) => onMouseUp(e);
+
+    if (isDragging || isPotentialDrag) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, isPotentialDrag, onMouseMove, onMouseUp]);
+
+  // Reset progress bar when switching tracks - consolidated effect
+  useEffect(() => {
+    if (
+      !progressRef.current ||
+      !pointerRef.current ||
+      !audioRef.current ||
+      !playBtnRef.current
+    ) {
+      return;
+    }
+
     const progress = progressRef.current;
     const pointer = pointerRef.current;
+    const playBtn = playBtnRef.current;
     const isRtl = lang === "ar";
 
     // Immediately reset progress and pointer without transition
@@ -372,18 +541,54 @@ const Player = () => {
 
     // Force a reflow to ensure the "none" transition takes effect
     void progress.offsetHeight;
-  }, [playlist[playing].src, lang, positionPointer]);
+
+    // Auto-play if audio was playing (only if audioState is available)
+    if (audioState && !audioState.playing) {
+      playBtn.click();
+    }
+  }, [playing, qari, moshaf, lang, positionPointer]); // Consolidated dependencies
 
   // Update progress bar and pointer position
   useEffect(() => {
+    const previousAudioState = previousAudioStateRef.current;
+    const currentAudioState = audioState
+      ? { playing: audioState.playing, duration: audioState.duration }
+      : null;
+
+    // Guard: Skip if dragging to prevent interference
+    if (isDraggingRef.current) {
+      return;
+    }
+
+    // Guard: Skip if recently finished dragging to prevent interference
+    const timeSinceLastDrag = Date.now() - lastDragEndTime.current;
+    if (timeSinceLastDrag < 300) {
+      return;
+    }
+
+    // Guard: Skip if audioState hasn't meaningfully changed (but allow language changes)
+    if (
+      previousAudioState &&
+      currentAudioState &&
+      previousAudioState.playing === currentAudioState.playing &&
+      previousAudioState.duration === currentAudioState.duration &&
+      previousLangRef.current === lang
+    ) {
+      return;
+    }
+
+    // Update the previous state refs
+    previousAudioStateRef.current = currentAudioState;
+
     if (
       !progressRef.current ||
       !pointerRef.current ||
       !audioRef.current ||
       !containerRef.current ||
       !audioState
-    )
+    ) {
       return;
+    }
 
     const progress = progressRef.current;
     const audio = audioRef.current;
@@ -404,18 +609,21 @@ const Player = () => {
     const maxX = containerRect.width;
 
     if (audioState.playing && !audio.paused && audio.readyState >= 3) {
-      progress.style.width = "100%";
-      progress.style.transition = `width ${timeRemaining}ms linear`;
+      // Small delay to ensure any resets have completed first
+      setTimeout(() => {
+        progress.style.width = "100%";
+        progress.style.transition = `width ${timeRemaining}ms linear`;
 
-      if (isRtl) {
-        pointer.style.right = `${maxX - 5}px`;
-        pointer.style.left = "auto";
-        pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
-      } else {
-        pointer.style.left = `${maxX - 5}px`;
-        pointer.style.right = "auto";
-        pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
-      }
+        if (isRtl) {
+          pointer.style.right = `${maxX - 5}px`;
+          pointer.style.left = "auto";
+          pointer.style.transition = `right ${timeRemaining}ms linear, opacity 300ms ease-out`;
+        } else {
+          pointer.style.left = `${maxX - 5}px`;
+          pointer.style.right = "auto";
+          pointer.style.transition = `left ${timeRemaining}ms linear, opacity 300ms ease-out`;
+        }
+      }, 50); // 50ms delay to prevent race conditions
     } else {
       progress.style.width = `${currentProgress * 100}%`;
       progress.style.transition = "none";
@@ -433,23 +641,23 @@ const Player = () => {
 
     // Cleanup
     return () => {
+      // Guard: Prevent redundant cleanup calls
+      if (cleanupInProgress.current) {
+        return;
+      }
+      cleanupInProgress.current = true;
+
       progress.style.transition = "none";
       pointer.style.transition = "none";
+
+      // Reset cleanup flag after a short delay
+      setTimeout(() => {
+        cleanupInProgress.current = false;
+      }, 10);
     };
   }, [audioState, lang]);
 
-  // Add/remove mousemove event listener for dragging
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => onMouseMove(e);
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [isDragging, onMouseMove]);
-
-  // Reset the Slider on new Surah
+  // REMOVED: Duplicate "Reset the Slider on new Surah" effect - consolidated into track change effect above
   useEffect(() => {
     if (
       !pointerRef.current ||
@@ -457,39 +665,10 @@ const Player = () => {
       !audioState ||
       !playBtnRef.current ||
       !audioRef.current
-    )
+    ) {
       return;
-    const pointer = pointerRef.current;
-    const progress = progressRef.current;
-    const playBtn = playBtnRef.current;
-    const isRtl = lang === "ar";
-
-    progress.style.width = "0";
-
-    if (isRtl) {
-      pointer.style.right = `-5px`;
-      pointer.style.left = "auto";
-    } else {
-      pointer.style.left = `-5px`;
-      pointer.style.right = "auto";
     }
 
-    progress.style.transition = "none";
-    pointer.style.transition = "none";
-    saveData(audioRef.current);
-    if (!audioState.playing) {
-      playBtn.click();
-    }
-  }, [playing, qari, moshaf]);
-  useEffect(() => {
-    if (
-      !pointerRef.current ||
-      !progressRef.current ||
-      !audioState ||
-      !playBtnRef.current ||
-      !audioRef.current
-    )
-      return;
     const pointer = pointerRef.current;
     const progress = progressRef.current;
     const isRtl = lang === "ar";
@@ -510,7 +689,10 @@ const Player = () => {
 
   // Change the volume on slider move
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current) {
+      return;
+    }
+
     const audio = audioRef.current;
     audioVolumeRef.current = audioVolume;
     audio.volume = audioVolume / 100;
@@ -523,6 +705,7 @@ const Player = () => {
         volume: audio.volume,
       })
     );
+
     if (extensionMode) {
       chrome.runtime.sendMessage({
         type: "CHANGE_VOLUME",
@@ -534,8 +717,10 @@ const Player = () => {
   // Handle Pointer Reposition on Window Resize
   useEffect(() => {
     const handleWindowResize = () => {
-      if (!containerRef.current || !audioRef.current || !pointerRef.current)
+      if (!containerRef.current || !audioRef.current || !pointerRef.current) {
         return;
+      }
+
       const container = containerRef.current;
       const audio = audioRef.current;
       const pointer = pointerRef.current;
@@ -568,31 +753,49 @@ const Player = () => {
           }, 1);
         }
       }
+
       setPageWidth(window.innerWidth);
     };
 
     window.addEventListener("resize", handleWindowResize);
-    return () => window.removeEventListener("resize", handleWindowResize);
+
+    return () => {
+      window.removeEventListener("resize", handleWindowResize);
+    };
   }, [lang]);
 
   // Apply language-based direction to the progress container
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
 
     const container = containerRef.current;
-    container.style.direction = lang === "ar" ? "rtl" : "ltr";
+    const direction = lang === "ar" ? "rtl" : "ltr";
+    container.style.direction = direction;
   }, [lang]);
 
-  // Handle language change while audio is playing
+  // Handle language change while audio is playing - ONLY when language actually changes
   useEffect(() => {
+    const previousLang = previousLangRef.current;
+
+    // Guard: Only proceed if language actually changed
+    if (lang === previousLang) {
+      return;
+    }
+
+    // Update the previous language ref
+    previousLangRef.current = lang;
+
     if (
       !progressRef.current ||
       !pointerRef.current ||
       !audioRef.current ||
       !containerRef.current ||
       !audioState
-    )
+    ) {
       return;
+    }
 
     const progress = progressRef.current;
     const audio = audioRef.current;
@@ -638,21 +841,44 @@ const Player = () => {
         }
       }, 10);
     }
-  }, [lang, audioState]);
+  }, [lang]); // Removed audioState from dependencies - only trigger on actual language changes
 
   useEffect(() => {
-    if (
+    const currentPlaying = playOptions?.playing;
+    const needsSync =
       audioRef.current &&
       playBtnRef.current &&
-      audioRef.current.paused !== !playOptions?.playing
-    ) {
+      audioRef.current.paused !== !currentPlaying;
+
+    // Guard: Skip if currently dragging to prevent interference
+    if (isDraggingRef.current) {
+      return;
+    }
+
+    // Guard: Skip if play state hasn't actually changed
+    if (previousPlayOptionsPlaying.current === currentPlaying) {
+      return;
+    }
+
+    // Guard: Throttle rapid sync attempts
+    const now = Date.now();
+    if (now - lastPlayOptionsSyncTime.current < 150) {
+      return;
+    }
+
+    previousPlayOptionsPlaying.current = currentPlaying;
+    lastPlayOptionsSyncTime.current = now;
+
+    if (needsSync) {
       playBtnRef.current.click();
     }
   }, [playOptions?.playing]);
 
   // Set loading state when src changes
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current) {
+      return;
+    }
 
     // Show loading immediately when switching tracks while playing
     if (!audioRef.current.paused || playingStateRef.current) {
@@ -662,7 +888,10 @@ const Player = () => {
 
   // Add waiting and playing event handlers
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current) {
+      return;
+    }
+
     const audio = audioRef.current;
     let loadingTimeout: ReturnType<typeof setTimeout>;
 
@@ -676,6 +905,13 @@ const Player = () => {
     };
 
     const handlePlaying = () => {
+      const now = Date.now();
+      // Throttle playing events to prevent spam
+      if (now - lastPlayingTime.current < 100) {
+        return;
+      }
+      lastPlayingTime.current = now;
+
       if (loadingTimeout) clearTimeout(loadingTimeout);
       setIsLoading(false);
     };
@@ -688,6 +924,18 @@ const Player = () => {
     };
 
     const handleCanPlay = () => {
+      // Skip if currently dragging to prevent interference
+      if (isDraggingRef.current) {
+        return;
+      }
+
+      const now = Date.now();
+      // Throttle canplay events to prevent infinite spam
+      if (now - lastCanPlayTime.current < 100) {
+        return;
+      }
+      lastCanPlayTime.current = now;
+
       if (loadingTimeout) clearTimeout(loadingTimeout);
       setIsLoading(false);
     };
@@ -837,7 +1085,7 @@ const Player = () => {
         </div>
         <div
           ref={containerRef}
-          onClick={onMouseClick}
+          onMouseDown={onProgressBarMouseDown}
           style={{
             cursor:
               audioState && audioRef.current?.duration ? "pointer" : "default",
@@ -847,12 +1095,18 @@ const Player = () => {
         >
           <div
             ref={pointerRef}
-            onMouseDown={() =>
-              audioState && audioRef.current?.duration && setIsDragging(true)
-            }
-            onMouseUp={() =>
-              audioState && audioRef.current?.duration && setIsDragging(false)
-            }
+            onMouseDown={(e) => {
+              if (audioState && audioRef.current?.duration) {
+                // Store the current playing state before dragging
+                wasPlayingBeforeDragRef.current =
+                  audioState.playing && !audioRef.current.paused;
+                isDraggingRef.current = true;
+                setIsDragging(true);
+                hasDraggedRef.current = true; // We're definitely dragging from the pointer
+                setIsPotentialDrag(true);
+                e.stopPropagation(); // Prevent parent mousedown
+              }
+            }}
             style={{
               display:
                 audioState && audioRef.current?.duration ? "block" : "none",
