@@ -88,37 +88,46 @@ const Player = () => {
   const lastPlayOptionsSyncTime = useRef<number>(0);
   const previousPlayOptionsPlaying = useRef<boolean | undefined>(undefined);
   const cleanupInProgress = useRef<boolean>(false);
-  const saveData = (audio: HTMLAudioElement) => {
-    const stored = localStorage.getItem(storageKey);
-    const storedData = stored ? JSON.parse(stored) : {};
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        ...storedData,
-        paused: !playingStateRef.current,
-        currentTime: audio.currentTime,
-      })
-    );
-  };
-  const playAudio = (audio: HTMLAudioElement) => {
-    audio.play();
-    saveData(audio);
-    if (extensionMode) {
-      if (audioInitializedRef.current) {
-        chrome.runtime.sendMessage({
-          type: "PLAY_AUDIO",
-        });
+  const saveData = useCallback(
+    (audio: HTMLAudioElement) => {
+      const stored = localStorage.getItem(storageKey);
+      const storedData = stored ? JSON.parse(stored) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          ...storedData,
+          paused: !playingStateRef.current,
+          currentTime: audio.currentTime,
+        })
+      );
+    },
+    [storageKey]
+  );
+  const playAudio = useCallback(
+    (audio: HTMLAudioElement) => {
+      audio.play();
+      saveData(audio);
+      if (extensionMode) {
+        if (audioInitializedRef.current) {
+          chrome.runtime.sendMessage({
+            type: "PLAY_AUDIO",
+          });
+        }
+        audioInitializedRef.current = true;
       }
-      audioInitializedRef.current = true;
-    }
-  };
-  const pauseAudio = (audio: HTMLAudioElement) => {
-    audio.pause();
-    saveData(audio);
-    if (extensionMode) {
-      chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
-    }
-  };
+    },
+    [extensionMode, saveData]
+  );
+  const pauseAudio = useCallback(
+    (audio: HTMLAudioElement) => {
+      audio.pause();
+      saveData(audio);
+      if (extensionMode) {
+        chrome.runtime.sendMessage({ type: "PAUSE_AUDIO" });
+      }
+    },
+    [extensionMode, saveData]
+  );
 
   const onMouseEnterVolume = () => {
     if (volumePanelTimeout.current) {
@@ -297,6 +306,13 @@ const Player = () => {
       // Set new audio time
       audio.currentTime = (duration * audioProgress) / 100;
 
+      // Update playOptions immediately to keep it synchronized
+      setPlayOptions({
+        playing: false,
+        currentTime: audio.currentTime,
+        duration: audio.duration,
+      });
+
       // Sync with extension audio if in extension mode
       if (extensionMode) {
         chrome.runtime.sendMessage({
@@ -307,11 +323,6 @@ const Player = () => {
 
       pauseAudio(audio);
       setAudioState({ ...audioState, playing: false });
-      setPlayOptions({
-        playing: false,
-        currentTime: audio.currentTime,
-        duration: audio.duration,
-      });
 
       // Resume playback after a very short delay only if it was playing before
       if (playBtnTimeout.current) {
@@ -386,6 +397,13 @@ const Player = () => {
       // Update audio time without triggering play/pause cycles
       audio.currentTime = (duration * audioProgress) / 100;
 
+      // Update playOptions to keep it synchronized during dragging
+      setPlayOptions({
+        playing: playingStateRef.current,
+        currentTime: audio.currentTime,
+        duration: audio.duration,
+      });
+
       // Sync with extension audio if in extension mode
       if (extensionMode) {
         chrome.runtime.sendMessage({
@@ -402,19 +420,83 @@ const Player = () => {
   // Handle mouse down on progress bar for smooth dragging
   const onProgressBarMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!audioState || !audioRef.current?.duration) return;
+      if (
+        !audioState ||
+        !audioRef.current?.duration ||
+        !containerRef.current ||
+        !pointerRef.current ||
+        !progressRef.current
+      )
+        return;
+
+      const container = containerRef.current;
+      const pointer = pointerRef.current;
+      const progressBar = progressRef.current;
+      const audio = audioRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const maxX = containerRect.width;
+      const isRtl = lang === "ar";
+      const { duration } = audioState;
+
+      // Calculate mouse position and corresponding audio progress
+      let clickX;
+      if (isRtl) {
+        clickX = containerRect.right - e.clientX;
+      } else {
+        clickX = e.clientX - containerRect.left;
+      }
+
+      const audioProgress = (clickX / maxX) * 100;
+      const newCurrentTime = (duration * audioProgress) / 100;
+
+      // Immediately move pointer to mouse position for visual feedback
+      pointer.style.transition = "none";
+      progressBar.style.transition = "none";
+      positionPointer(pointer, clickX - 5, isRtl);
+      progressBar.style.width = `${audioProgress}%`;
+
+      // Update audio time and playOptions immediately
+      audio.currentTime = newCurrentTime;
+      setPlayOptions({
+        playing: playingStateRef.current,
+        currentTime: audio.currentTime,
+        duration: audio.duration,
+      });
+
+      // Sync with extension audio if in extension mode
+      if (extensionMode) {
+        chrome.runtime.sendMessage({
+          type: "SEEK_AUDIO",
+          currentTime: audio.currentTime,
+        });
+      }
 
       // Store initial mouse position and playing state
       dragStartPositionRef.current = { x: e.clientX, y: e.clientY };
-      wasPlayingBeforeDragRef.current =
-        audioState.playing && !audioRef.current.paused;
+      wasPlayingBeforeDragRef.current = audioState.playing && !audio.paused;
       hasDraggedRef.current = false;
       setIsPotentialDrag(true);
+
+      // Pause audio during the interaction
+      if (!audio.paused) {
+        pauseAudio(audio);
+        setAudioState({ ...audioState, playing: false });
+      }
+
+      saveData(audio);
 
       // Prevent the click event from firing immediately
       e.preventDefault();
     },
-    [audioState]
+    [
+      audioState,
+      lang,
+      positionPointer,
+      extensionMode,
+      pauseAudio,
+      setPlayOptions,
+      saveData,
+    ]
   );
 
   // Handle mouse up to end dragging
@@ -424,16 +506,23 @@ const Player = () => {
       // Handle click if we haven't dragged
       if (dragStartPositionRef.current && !hasDraggedRef.current && e) {
         dragStartPositionRef.current = null;
-        // Simulate a click event
-        if (containerRef.current) {
-          const syntheticEvent = {
-            clientX: e.clientX,
-            clientY: e.clientY,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-          } as React.MouseEvent<HTMLDivElement>;
-          onMouseClick(syntheticEvent);
+        // Since we already moved to the position in onProgressBarMouseDown,
+        // we just need to resume playback if it was playing before
+        if (
+          wasPlayingBeforeDragRef.current &&
+          audioRef.current &&
+          playBtnRef.current
+        ) {
+          setTimeout(() => {
+            if (playBtnRef.current) {
+              playBtnRef.current.click();
+            }
+          }, 50);
         }
+
+        // Reset drag state
+        hasDraggedRef.current = false;
+        setIsPotentialDrag(false);
         return;
       }
 
@@ -443,7 +532,7 @@ const Player = () => {
         lastDragEndTime.current = Date.now();
 
         // Resume playback if it was playing before dragging
-        if (audioRef.current && audioState) {
+        if (audioRef.current && audioState && wasPlayingBeforeDragRef.current) {
           setTimeout(() => {
             if (audioRef.current && audioRef.current.paused) {
               playAudio(audioRef.current);
@@ -473,15 +562,33 @@ const Player = () => {
                     storageKey,
                     JSON.stringify({
                       ...storedData,
+                      currentTime: audioRef.current!.currentTime,
                     })
                   );
                 }
               }, 1000);
             }
           }, 100); // Small delay to ensure drag state is fully cleared
+        } else if (audioRef.current) {
+          // Even if not resuming playback, ensure playOptions is synchronized
+          setPlayOptions({
+            playing: false,
+            currentTime: audioRef.current.currentTime,
+            duration: audioRef.current.duration,
+          });
         }
 
         // Restore transitions after drag ends
+        if (progressRef.current && pointerRef.current) {
+          setTimeout(() => {
+            if (progressRef.current && pointerRef.current) {
+              progressRef.current.style.transition = "width 100ms linear";
+              pointerRef.current.style.transition = "opacity 300ms ease-out";
+            }
+          }, 50);
+        }
+      } else {
+        // For non-drag interactions (simple clicks), also restore transitions
         if (progressRef.current && pointerRef.current) {
           setTimeout(() => {
             if (progressRef.current && pointerRef.current) {
