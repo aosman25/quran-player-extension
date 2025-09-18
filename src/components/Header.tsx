@@ -52,6 +52,11 @@ const Header = () => {
     playing,
     pageWidth,
   });
+  const isArabic = (text: string): boolean => {
+    // Arabic Unicode range: 0600–06FF, plus extended blocks
+    return /[\u0600-\u06FF]/.test(text);
+  };
+
   return (
     <div dir="" className="header-container">
       <div>
@@ -64,17 +69,21 @@ const Header = () => {
             autoFocus
             value={searchResult}
             onChange={(e) => {
-              setSearchResult(e.target.value);
-              setCleanedSearchResult(normalizeText(e.target.value));
+              const value = e.target.value;
+              setSearchResult(value);
+              setCleanedSearchResult(normalizeText(value));
             }}
             type="text"
-            className={`${lang == "en" ? "en-font" : "ar-font"}`}
+            // Input font depends on actual typed text
+            className={`${isArabic(searchResult) ? "ar-font" : "en-font"} ${
+              lang === "en" ? "placeholder-en-font" : "placeholder-ar-font"
+            }`}
             placeholder={
               chooseReciter
-                ? lang == "en"
+                ? lang === "en"
                   ? "Search Reciter..."
                   : "ابحث عن قارئ..."
-                : lang == "en"
+                : lang === "en"
                 ? "Search Surah..."
                 : "ابحث عن سورة..."
             }
