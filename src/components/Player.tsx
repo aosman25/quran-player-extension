@@ -44,7 +44,7 @@ const Player = () => {
   const playBtnRef = useRef<HTMLButtonElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
   const playingStateRef = useRef<boolean>(
-    "paused" in storedData ? !storedData.paused : false
+    "paused" in storedData && extensionMode ? !storedData.paused : false
   );
   const loopStateRef = useRef<boolean>(
     "loop" in storedData ? storedData.loop : false
