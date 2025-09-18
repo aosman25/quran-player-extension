@@ -14,7 +14,6 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
     qari,
     setQari,
     setPlaying,
-    playing,
     setMoshaf,
     setSearchResult,
     setCleanedSearchResult,

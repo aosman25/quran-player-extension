@@ -12,10 +12,6 @@ import moshafsData from "../data/quranmp3/moshafs.json";
 import { useAutoScroll } from "../hooks/useAutoScroll";
 import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
-type ArabicReplacements = {
-  [key: string]: string;
-};
-
 const Header = () => {
   const {
     qari,
@@ -34,6 +30,7 @@ const Header = () => {
     isScrolling,
     storageKey,
     setCleanedSearchResult,
+    normalizeText,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -55,22 +52,6 @@ const Header = () => {
     playing,
     pageWidth,
   });
-  function cleanSearchResult(text: string) {
-    const replacements: ArabicReplacements = {
-      أ: "ا",
-      إ: "ا",
-      آ: "ا",
-      ٱ: "ا",
-      ى: "ي",
-    };
-
-    return text
-      .replace(/[أإآٱى]/g, (char) => replacements[char] || char)
-      .toLowerCase()
-      .replace(/-/g, "")
-      .replace(/'/g, "")
-      .trim();
-  }
   return (
     <div dir="" className="header-container">
       <div>
@@ -84,7 +65,7 @@ const Header = () => {
             value={searchResult}
             onChange={(e) => {
               setSearchResult(e.target.value);
-              setCleanedSearchResult(cleanSearchResult(e.target.value));
+              setCleanedSearchResult(normalizeText(e.target.value));
             }}
             type="text"
             className={`${lang == "en" ? "en-font" : "ar-font"}`}

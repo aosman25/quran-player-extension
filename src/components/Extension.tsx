@@ -23,6 +23,7 @@ const Extension = () => {
     qari,
     pageWidth,
     cleanedSearchResult,
+    normalizeText,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
   const availableReciters: JSX.Element[] = [];
@@ -54,11 +55,9 @@ const Extension = () => {
     surahsList.forEach(
       ({ id, name, start_page, end_page, makkia, type }, index) => {
         if (
-          name[lang as keyof typeof name]
-            .toLowerCase()
-            .replace(/-/g, "")
-            .replace(/'/g, "")
-            .includes(cleanedSearchResult) ||
+          normalizeText(name[lang as keyof typeof name]).includes(
+            cleanedSearchResult
+          ) ||
           String(id).startsWith(searchResult.trim())
         ) {
           availableSurahs.push(

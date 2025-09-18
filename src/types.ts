@@ -16,6 +16,7 @@ export interface GlobalStatesContext {
     setSearchResult: React.Dispatch<React.SetStateAction<string>>,
     cleanedSearchResult: string,
     setCleanedSearchResult: React.Dispatch<React.SetStateAction<string>>,
+    normalizeText:  (text: string) => string,
     chooseReciter: boolean,
     setChooseReciter: React.Dispatch<React.SetStateAction<boolean>>,
     notFound: boolean,
@@ -111,3 +112,5 @@ export interface rawSurahData {
           "order": number
         }
     }
+
+    
