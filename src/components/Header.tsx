@@ -1,8 +1,7 @@
 import "../styles/components/Header.scss";
 import { MdPerson3 } from "react-icons/md";
-
-import { FaBookOpen } from "react-icons/fa";
-import { FaHeadphonesAlt } from "react-icons/fa";
+import { FaBookOpen, FaHeadphonesAlt, FaStar, FaRegStar } from "react-icons/fa";
+import { FiExternalLink } from "react-icons/fi";
 import Tooltip from "@mui/material/Tooltip";
 import { useContext, useState } from "react";
 import { GlobalStates } from "../GlobalStates";
@@ -31,6 +30,7 @@ const Header = () => {
     storageKey,
     setCleanedSearchResult,
     normalizeText,
+    extensionMode,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -52,16 +52,106 @@ const Header = () => {
     playing,
     pageWidth,
   });
+
+  const tooltipStyle =
+    lang === "en"
+      ? {
+          fontFamily: "'Ubuntu', sans-serif",
+          direction: "ltr",
+        }
+      : {
+          fontFamily: "'El Messiri', sans-serif",
+          direction: "rtl",
+        };
   const isArabic = (text: string): boolean => {
     // Arabic Unicode range: 0600–06FF, plus extended blocks
     return /[\u0600-\u06FF]/.test(text);
   };
 
   return (
-    <div dir="" className="header-container">
-      <div>
-        <p className="brand-name">QuranStream</p>
+    <div className="header-container">
+      <div dir="" className="header-headline-container">
+        {extensionMode ? (
+          <Tooltip
+            title={lang === "en" ? "Leave a Review" : "اترك تقييمًا"}
+            slotProps={{ tooltip: { sx: tooltipStyle } }}
+            arrow
+          >
+            <button
+              style={lang === "en" ? { left: "0" } : { right: "0" }}
+              className="icon-headline-btn"
+              onClick={() =>
+                window.open(
+                  "https://chromewebstore.google.com/detail/jofpmocniekfifgfglfmocjljeidgcfo/reviews",
+                  "_blank"
+                )
+              }
+            >
+              <FaRegStar className="star-icon empty" />
+              <FaStar className="star-icon filled" />
+            </button>
+          </Tooltip>
+        ) : (
+          <Tooltip
+            title={lang === "en" ? "Get the Extension" : "حمّل الإضافة"}
+            slotProps={{ tooltip: { sx: tooltipStyle } }}
+            arrow
+          >
+            <button
+              style={lang === "en" ? { left: "0" } : { right: "0" }}
+              className="icon-headline-btn"
+              onClick={() =>
+                window.open(
+                  "https://chromewebstore.google.com/detail/jofpmocniekfifgfglfmocjljeidgcfo",
+                  "_blank"
+                )
+              }
+            >
+              <FiExternalLink className="ext-icon" />
+            </button>
+          </Tooltip>
+        )}
+
+        <div>
+          <p
+            className="brand-name"
+            onClick={() => {
+              if (extensionMode) {
+                window.open("https://quranstream.org/", "_blank");
+              } else {
+                window.location.reload();
+              }
+            }}
+          >
+            QuranStream
+          </p>
+        </div>
+
+        <div
+          className="lang-switch"
+          style={lang === "en" ? { right: "0" } : { left: "0" }}
+        >
+          <p
+            className={`${lang == "ar" ? "en-font" : "ar-font"}`}
+            onClick={() => {
+              const newLang = lang == "en" ? "ar" : "en";
+              setLang(newLang);
+              const stored = localStorage.getItem(storageKey);
+              const storedData = stored ? JSON.parse(stored) : {};
+              localStorage.setItem(
+                storageKey,
+                JSON.stringify({
+                  ...storedData,
+                  lang: newLang,
+                })
+              );
+            }}
+          >
+            {lang == "en" ? "عربي" : "English"}
+          </p>
+        </div>
       </div>
+
       <div className="tools-container">
         {" "}
         <div className="search-container">
@@ -88,24 +178,6 @@ const Header = () => {
                 : "ابحث عن سورة..."
             }
           />
-          <p
-            className={`lang-switch  ${lang == "ar" ? "en-font" : "ar-font"}`}
-            onClick={() => {
-              const newLang = lang == "en" ? "ar" : "en";
-              setLang(newLang);
-              const stored = localStorage.getItem(storageKey);
-              const storedData = stored ? JSON.parse(stored) : {};
-              localStorage.setItem(
-                storageKey,
-                JSON.stringify({
-                  ...storedData,
-                  lang: newLang,
-                })
-              );
-            }}
-          >
-            {lang == "en" ? "عربي" : "English"}
-          </p>
         </div>
         <div className="filter-container">
           {chooseReciter ? (
@@ -118,6 +190,7 @@ const Header = () => {
                     ? "Change Surah"
                     : "غيّر السورة"
                 }
+                slotProps={{ tooltip: { sx: tooltipStyle } }}
                 arrow
               >
                 <button
@@ -128,7 +201,7 @@ const Header = () => {
                     setChooseReciter(false);
                     setSearchResult("");
                     setCleanedSearchResult("");
-                    scrollToCurrentItem(SCROLL_DURATIONS.INSTANT);
+                    scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
                   }}
                 >
                   <FaHeadphonesAlt className="filter-icon" />
@@ -167,6 +240,7 @@ const Header = () => {
                       ? "Change Reciter"
                       : "غيّر القارئ"
                   }
+                  slotProps={{ tooltip: { sx: tooltipStyle } }}
                   arrow
                 >
                   <button

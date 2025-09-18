@@ -43,13 +43,13 @@ const Extension = () => {
   useEffect(() => {
     setTimeout(
       () => scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT),
-      50
+      40
     );
   }, [qari, chooseReciter, scrollToCurrentItem]);
 
   useEffect(() => {
     scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
-  }, [lang, scrollToCurrentItem]);
+  }, [lang, searchResult, scrollToCurrentItem]);
 
   if (!chooseReciter) {
     surahsList.forEach(

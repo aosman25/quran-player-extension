@@ -1,12 +1,11 @@
 @use "../colors";
 @use "../variables.scss";
 .surah-box {
-     display: grid;
-    grid-template-columns: 120px 1fr 150px;
-    padding: 10px;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
-    
+  display: grid;
+  grid-template-columns: 120px 1fr 150px;
+  padding: 10px;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
 }
 .surah-progress-bar {
   width: 0;
@@ -38,36 +37,37 @@
   color: colors.$blue;
 }
 
-.icon-btn:hover, .surah-box:hover {
+.icon-btn:hover,
+.surah-box:hover {
   cursor: pointer;
 }
 
 .surah-btn-container {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 10px;
+  margin-right: 20px;
+  button {
     display: flex;
-    justify-content: right;
+    gap: 5px;
+    justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-right: 20px;
-    button {
-      display: flex;
-      gap: 5px;
-      justify-content: center;
-      align-items: center;
-      padding: 0 10px;
-      color: colors.$light-gray;
-      font-weight: bold;
-      background-color: colors.$dark-grey;
-      border-style: solid;
-      border-width: 1px;
-      border-radius: 10px;
-      border-color: colors.$silver-gray;
-      box-shadow: 0px 0px 2px rgba($color: #000000, $alpha: 0.3);
-      transition: color 200ms ,background-color 200ms;
-    }
-    button:hover {
-      background-color: colors.$teal;
-      cursor: pointer;
-    }
+    padding: 0 10px;
+    color: colors.$light-gray;
+    font-weight: bold;
+    background-color: colors.$dark-grey;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: colors.$silver-gray;
+    box-shadow: 0px 0px 2px rgba($color: #000000, $alpha: 0.3);
+    transition: color 200ms, background-color 200ms;
+  }
+  button:hover {
+    background-color: colors.$teal;
+    cursor: pointer;
+  }
 }
 
 @media screen and (max-width: variables.$width-breakpoint) {
