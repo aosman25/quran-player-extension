@@ -61,7 +61,7 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
             // Step 2: Get the original index of the top (most popular) moshaf
             const topOriginalIndex = sorted[0]?.originalIndex ?? 0;
             setChooseReciter(false);
-            if (qari !== id || playing !== 0) {
+            if (qari !== id) {
               setQari(id);
               setPlayOptions({ playing: true, duration: 0, currentTime: 0 });
               setPlaying(0);
