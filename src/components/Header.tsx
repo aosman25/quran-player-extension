@@ -41,7 +41,7 @@ const Header = () => {
       moshaf_type,
     };
   });
-  const [changeMoshafTimeout, setChangeMoshafTimeout] = useState<null | number>(
+  const [changeMoshafTimeout, setChangeMoshafTimeout] = useState<number | null>(
     null
   );
   const moshafs: MoshafsType = moshafsData;
@@ -279,7 +279,10 @@ const Header = () => {
                         className={`${lang == "en" ? "en-font" : "ar-font"}`}
                         onMouseLeave={() =>
                           setChangeMoshafTimeout(
-                            setTimeout(() => setChangeMoshaf(false), 1000)
+                            window.setTimeout(
+                              () => setChangeMoshaf(false),
+                              1000
+                            )
                           )
                         }
                         onClick={() => {
@@ -314,7 +317,10 @@ const Header = () => {
                           }
                           onMouseLeave={() =>
                             setChangeMoshafTimeout(
-                              setTimeout(() => setChangeMoshaf(false), 1000)
+                              window.setTimeout(
+                                () => setChangeMoshaf(false),
+                                1000
+                              )
                             )
                           }
                           className="mohafs-container"

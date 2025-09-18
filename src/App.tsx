@@ -54,7 +54,7 @@ function App() {
   ); // Default Moshaf
   const [pageWidth, setPageWidth] = useState(window.innerWidth);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
-  const scrollTimeOutRef = useRef<number | undefined>(undefined);
+  const scrollTimeOutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loved, setLoved] = useState<boolean>(false);
   const [lang, setLang] = useState<"en" | "ar">(
     "lang" in storedData ? storedData["lang"] : "en"
@@ -76,7 +76,9 @@ function App() {
     setPageWidth(window.innerWidth);
   };
   const handleScrollState = () => {
-    clearTimeout(scrollTimeOutRef.current);
+    if (scrollTimeOutRef.current) {
+      clearTimeout(scrollTimeOutRef.current);
+    }
     setIsScrolling(true);
     scrollTimeOutRef.current = setTimeout(() => {
       setIsScrolling(false);
