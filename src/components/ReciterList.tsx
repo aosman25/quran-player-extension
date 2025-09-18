@@ -11,8 +11,10 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
   const {
     lang,
     setChooseReciter,
+    qari,
     setQari,
     setPlaying,
+    playing,
     setMoshaf,
     setSearchResult,
     setCleanedSearchResult,
@@ -58,34 +60,34 @@ const ReciterList = ({ firstLetter }: { firstLetter: string }) => {
 
             // Step 2: Get the original index of the top (most popular) moshaf
             const topOriginalIndex = sorted[0]?.originalIndex ?? 0;
-
-            // Step 3: Update state and localStorage
             setChooseReciter(false);
-            setQari(id);
-            setPlayOptions({ playing: true, duration: 0, currentTime: 0 });
-            setPlaying(0);
-            setMoshaf(topOriginalIndex);
-            setSearchResult("");
-            setCleanedSearchResult("");
-            if (extensionMode) {
-              chrome.runtime.sendMessage({
-                type: "STOP_AUDIO",
-              });
+            if (qari !== id || playing !== 0) {
+              setQari(id);
+              setPlayOptions({ playing: true, duration: 0, currentTime: 0 });
+              setPlaying(0);
+              setMoshaf(topOriginalIndex);
+              setSearchResult("");
+              setCleanedSearchResult("");
+              if (extensionMode) {
+                chrome.runtime.sendMessage({
+                  type: "STOP_AUDIO",
+                });
+              }
+              // Step 3: Update state and localStorage
+              const storedData = JSON.parse(
+                localStorage.getItem(storageKey) || "{}"
+              );
+              localStorage.setItem(
+                storageKey,
+                JSON.stringify({
+                  ...storedData,
+                  playing: 0,
+                  moshaf: topOriginalIndex,
+                  currentTime: 0,
+                  qari: id,
+                })
+              );
             }
-
-            const storedData = JSON.parse(
-              localStorage.getItem(storageKey) || "{}"
-            );
-            localStorage.setItem(
-              storageKey,
-              JSON.stringify({
-                ...storedData,
-                playing: 0,
-                moshaf: topOriginalIndex,
-                currentTime: 0,
-                qari: id,
-              })
-            );
           }}
         >
           {name}
