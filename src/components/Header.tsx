@@ -1,19 +1,15 @@
 import "../styles/components/Header.scss";
 import { MdPerson3 } from "react-icons/md";
-
-import { FaBookOpen } from "react-icons/fa";
-import { FaHeadphonesAlt } from "react-icons/fa";
+import { FaBookOpen, FaHeadphonesAlt, FaStar, FaRegStar } from "react-icons/fa";
+import { FiExternalLink } from "react-icons/fi";
 import Tooltip from "@mui/material/Tooltip";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { GlobalStates } from "../GlobalStates";
-import { GlobalStatesContext, MoshafsType, Language, Play } from "../types";
+import { GlobalStatesContext, MoshafsType, Language } from "../types";
 import recitersList from "../data/quranmp3/reciters.json";
 import moshafsData from "../data/quranmp3/moshafs.json";
-import { animateScroll as scroll, scroller } from "react-scroll";
-
-type ArabicReplacements = {
-  [key: string]: string;
-};
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
 const Header = () => {
   const {
@@ -33,6 +29,8 @@ const Header = () => {
     isScrolling,
     storageKey,
     setCleanedSearchResult,
+    normalizeText,
+    extensionMode,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const [changeMoshaf, setChangeMoshaf] = useState<boolean>(false);
   const availableMoshafs = recitersList[
@@ -43,66 +41,98 @@ const Header = () => {
       moshaf_type,
     };
   });
-  const [changeMoshafTimeout, setChangeMoshafTimeout] = useState<null | number>(
+  const [changeMoshafTimeout, setChangeMoshafTimeout] = useState<number | null>(
     null
   );
   const moshafs: MoshafsType = moshafsData;
-  const scrollOptions = {
-    duration: 0,
-    smooth: true,
+
+  // Use the centralized auto-scroll hook
+  const { scrollToCurrentItem, scrollToTop } = useAutoScroll({
+    playlist,
+    playing,
+    pageWidth,
+  });
+
+  const tooltipStyle =
+    lang === "en"
+      ? {
+          fontFamily: "'Ubuntu', sans-serif",
+          direction: "ltr",
+        }
+      : {
+          fontFamily: "'El Messiri', sans-serif",
+          direction: "rtl",
+        };
+  const isArabic = (text: string): boolean => {
+    // Arabic Unicode range: 0600–06FF, plus extended blocks
+    return /[\u0600-\u06FF]/.test(text);
   };
-  const playlistRef = useRef<Play[]>(playlist);
-  const playingRef = useRef<number>(playing);
-  function cleanSearchResult(text: string) {
-    const replacements: ArabicReplacements = {
-      أ: "ا",
-      إ: "ا",
-      آ: "ا",
-      ٱ: "ا",
-      ى: "ي",
-    };
 
-    return text
-      .replace(/[أإآٱى]/g, (char) => replacements[char] || char)
-      .toLowerCase()
-      .replace(/-/g, "")
-      .replace(/'/g, "")
-      .trim();
-  }
-
-  useEffect(() => {
-    playlistRef.current = playlist;
-    playingRef.current = playing;
-  }, [playlist, playing]);
   return (
-    <div dir="" className="header-container">
-      <div>
-        <p className="brand-name">QuranStream</p>
-      </div>
-      <div className="tools-container">
-        {" "}
-        <div className="search-container">
-          <input
-            autoFocus
-            value={searchResult}
-            onChange={(e) => {
-              setSearchResult(e.target.value);
-              setCleanedSearchResult(cleanSearchResult(e.target.value));
-            }}
-            type="text"
-            className={`${lang == "en" ? "en-font" : "ar-font"}`}
-            placeholder={
-              chooseReciter
-                ? lang == "en"
-                  ? "Search Reciter..."
-                  : "ابحث عن قارئ..."
-                : lang == "en"
-                ? "Search Surah..."
-                : "ابحث عن سورة..."
-            }
-          />
+    <div className="header-container">
+      <div dir="" className="header-headline-container">
+        {extensionMode ? (
+          <Tooltip
+            title={lang === "en" ? "Leave a Review" : "اترك تقييمًا"}
+            slotProps={{ tooltip: { sx: tooltipStyle } }}
+            arrow
+          >
+            <button
+              style={lang === "en" ? { left: "0" } : { right: "0" }}
+              className="icon-headline-btn"
+              onClick={() =>
+                window.open(
+                  "https://chromewebstore.google.com/detail/jofpmocniekfifgfglfmocjljeidgcfo/reviews",
+                  "_blank"
+                )
+              }
+            >
+              <FaRegStar className="star-icon empty" />
+              <FaStar className="star-icon filled" />
+            </button>
+          </Tooltip>
+        ) : (
+          <Tooltip
+            title={lang === "en" ? "Get the Extension" : "حمّل الإضافة"}
+            slotProps={{ tooltip: { sx: tooltipStyle } }}
+            arrow
+          >
+            <button
+              style={lang === "en" ? { left: "0" } : { right: "0" }}
+              className="icon-headline-btn"
+              onClick={() =>
+                window.open(
+                  "https://chromewebstore.google.com/detail/jofpmocniekfifgfglfmocjljeidgcfo",
+                  "_blank"
+                )
+              }
+            >
+              <FiExternalLink className="ext-icon" />
+            </button>
+          </Tooltip>
+        )}
+
+        <div>
           <p
-            className={`lang-switch  ${lang == "ar" ? "en-font" : "ar-font"}`}
+            className="brand-name"
+            onClick={() => {
+              if (extensionMode) {
+                window.open("https://quranstream.org/", "_blank");
+              } else {
+                window.location.reload();
+              }
+            }}
+          >
+            QuranStream
+          </p>
+        </div>
+
+        <div
+          className="lang-switch"
+          style={lang === "en" ? { right: "0" } : { left: "0" }}
+        >
+          <p
+            className={`${lang == "ar" ? "en-font" : "ar-font"}`}
             onClick={() => {
               const newLang = lang == "en" ? "ar" : "en";
               setLang(newLang);
@@ -120,6 +150,35 @@ const Header = () => {
             {lang == "en" ? "عربي" : "English"}
           </p>
         </div>
+      </div>
+
+      <div className="tools-container">
+        {" "}
+        <div className="search-container">
+          <input
+            autoFocus
+            value={searchResult}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchResult(value);
+              setCleanedSearchResult(normalizeText(value));
+            }}
+            type="text"
+            // Input font depends on actual typed text
+            className={`${isArabic(searchResult) ? "ar-font" : "en-font"} ${
+              lang === "en" ? "placeholder-en-font" : "placeholder-ar-font"
+            }`}
+            placeholder={
+              chooseReciter
+                ? lang === "en"
+                  ? "Search Reciter..."
+                  : "ابحث عن قارئ..."
+                : lang === "en"
+                ? "Search Surah..."
+                : "ابحث عن سورة..."
+            }
+          />
+        </div>
         <div className="filter-container">
           {chooseReciter ? (
             <div className="filter-btn-container">
@@ -131,6 +190,7 @@ const Header = () => {
                     ? "Change Surah"
                     : "غيّر السورة"
                 }
+                slotProps={{ tooltip: { sx: tooltipStyle } }}
                 arrow
               >
                 <button
@@ -141,17 +201,7 @@ const Header = () => {
                     setChooseReciter(false);
                     setSearchResult("");
                     setCleanedSearchResult("");
-                    setTimeout(() => {
-                      scroller.scrollTo(
-                        String(
-                          String(playlistRef.current[playingRef.current]["id"])
-                        ),
-                        {
-                          ...scrollOptions,
-                          offset: pageWidth <= 800 ? -165 : -120,
-                        }
-                      );
-                    }, 0.01);
+                    scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
                   }}
                 >
                   <FaHeadphonesAlt className="filter-icon" />
@@ -190,6 +240,7 @@ const Header = () => {
                       ? "Change Reciter"
                       : "غيّر القارئ"
                   }
+                  slotProps={{ tooltip: { sx: tooltipStyle } }}
                   arrow
                 >
                   <button
@@ -197,7 +248,7 @@ const Header = () => {
                       setChooseReciter(true);
                       setSearchResult("");
                       setCleanedSearchResult("");
-                      scroll.scrollToTop(scrollOptions);
+                      scrollToTop();
                     }}
                     className={`${lang == "en" ? "en-font" : "ar-font"}`}
                   >
@@ -228,7 +279,10 @@ const Header = () => {
                         className={`${lang == "en" ? "en-font" : "ar-font"}`}
                         onMouseLeave={() =>
                           setChangeMoshafTimeout(
-                            setTimeout(() => setChangeMoshaf(false), 1000)
+                            window.setTimeout(
+                              () => setChangeMoshaf(false),
+                              1000
+                            )
                           )
                         }
                         onClick={() => {
@@ -263,7 +317,10 @@ const Header = () => {
                           }
                           onMouseLeave={() =>
                             setChangeMoshafTimeout(
-                              setTimeout(() => setChangeMoshaf(false), 1000)
+                              window.setTimeout(
+                                () => setChangeMoshaf(false),
+                                1000
+                              )
                             )
                           }
                           className="mohafs-container"

@@ -54,7 +54,7 @@ function App() {
   ); // Default Moshaf
   const [pageWidth, setPageWidth] = useState(window.innerWidth);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
-  const scrollTimeOutRef = useRef<number | undefined>(undefined);
+  const scrollTimeOutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loved, setLoved] = useState<boolean>(false);
   const [lang, setLang] = useState<"en" | "ar">(
     "lang" in storedData ? storedData["lang"] : "en"
@@ -76,7 +76,9 @@ function App() {
     setPageWidth(window.innerWidth);
   };
   const handleScrollState = () => {
-    clearTimeout(scrollTimeOutRef.current);
+    if (scrollTimeOutRef.current) {
+      clearTimeout(scrollTimeOutRef.current);
+    }
     setIsScrolling(true);
     scrollTimeOutRef.current = setTimeout(() => {
       setIsScrolling(false);
@@ -94,6 +96,44 @@ function App() {
     }
     return surahsList;
   }, [moshaf, qari]);
+
+  const normalizeText = (text: string): string => {
+    // Map of letter replacements
+    const replacements: Record<string, string> = {
+      أ: "ا",
+      إ: "ا",
+      آ: "ا",
+      ٱ: "ا",
+      ى: "ي",
+      ؤ: "و",
+      ئ: "ي",
+      ة: "ه",
+      ک: "ك",
+      ہ: "ه",
+      ھ: "ه",
+    };
+
+    return (
+      text
+        // Normalize characters based on dictionary
+        .replace(/./g, (char) => replacements[char] || char)
+        // Remove tatweel (ـ)
+        .replace(/ـ/g, "")
+        // Remove Arabic diacritics (tashkeel: َ ً ُ ٌ ِ ٍ ْ ّ)
+        .replace(/[\u064B-\u065F]/g, "")
+        // Remove Arabic non-breaking spaces / directional marks
+        .replace(/[\u200C-\u200F\u202A-\u202E]/g, "")
+        // Lowercase (for mixed Arabic/Latin text)
+        .toLowerCase()
+        // Remove some ASCII punctuation
+        .replace(/[-']/g, "")
+        // Collapse multiple spaces, tabs, or newlines → single space
+        .replace(/\s+/g, " ")
+        // Trim whitespace
+        .trim()
+    );
+  };
+
   const surahsList: SurahData[] = useMemo(genrateSurahs, [genrateSurahs]);
   const generatePlaylist = useCallback(
     (qari: number): Play[] => {
@@ -168,6 +208,7 @@ function App() {
         searchResult,
         setSearchResult,
         cleanedSearchResult,
+        normalizeText,
         setCleanedSearchResult,
         chooseReciter,
         setChooseReciter,

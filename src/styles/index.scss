@@ -1,35 +1,35 @@
-@use '_colors.scss';
-@use 'variables';
+@use "_colors.scss";
+@use "variables";
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    padding: 10px;
-    padding-top: 120px;
-    padding-bottom: 70px;
-    background-color: colors.$dark-grey;
-    color: colors.$white;
+  padding: 10px;
+  padding-top: 120px;
+  padding-bottom: 70px;
+  background-color: colors.$dark-grey;
+  color: colors.$white;
 }
 
 hr {
-    border: 1px solid colors.$silver-gray;
-    border-radius: 10px;
+  border: 1px solid colors.$silver-gray;
+  border-radius: 10px;
 }
 
 .en-font {
-    font-family: "Ubuntu", serif;
+  font-family: "Ubuntu", sans-serif;
 }
 
 .ar-font {
-    font-family: "El Messiri", serif;
+  font-family: "El Messiri", sans-serif;
 }
 
 @media screen and (max-width: variables.$width-breakpoint) {
-    body {
+  body {
     padding: 0;
     padding-top: 170px;
-    padding-bottom: 135px;   
- }
+    padding-bottom: 135px;
+  }
 }

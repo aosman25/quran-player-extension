@@ -63,6 +63,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     audio.pause();
   } else if (message.type === "CHANGE_VOLUME" && audio) {
     audio.volume = message.volume;
+  } else if (message.type === "SEEK_AUDIO" && audio) {
+    audio.currentTime = message.currentTime;
   } else if (message.type === "POPUP_OPENED" && audio) {
     const extensionData = JSON.parse(
       localStorage.getItem("quranstream-extension")

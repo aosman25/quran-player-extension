@@ -1,14 +1,16 @@
 import Player from "./Player";
 import Surah from "./Surah";
-import { GlobalStatesContext, Play, ReciterNamesType } from "../types";
+import { GlobalStatesContext, ReciterNamesType } from "../types";
 import { useContext, useEffect, useRef } from "react";
 import { GlobalStates } from "../GlobalStates";
 import Header from "./Header";
 import reciterNames from "../data/quranmp3/sorted_reciter_names.json";
 import ReciterList from "./ReciterList";
 import "../styles/components/Extension.scss";
-import { Element, scroller } from "react-scroll";
+import { Element } from "react-scroll";
 import NotFound from "./NotFound";
+import { useAutoScroll } from "../hooks/useAutoScroll";
+import { SCROLL_DURATIONS } from "../constants/scrollConfig";
 
 const Extension = () => {
   const {
@@ -21,71 +23,41 @@ const Extension = () => {
     qari,
     pageWidth,
     cleanedSearchResult,
+    normalizeText,
   } = useContext<GlobalStatesContext>(GlobalStates);
   const availableSurahs: JSX.Element[] = [];
   const availableReciters: JSX.Element[] = [];
-  const scrollTimeout = useRef<number | null>(null);
-  const playingRef = useRef<number>(playing);
-  const playlistRef = useRef<Play[]>(playlist);
-  const offsetRef = useRef<number>(pageWidth <= 800 ? -165 : -120);
   const surahsListContainerRef = useRef(null);
-  const scrollOptions = {
-    duration: 700,
-    smooth: true,
-  };
-  const scrollToTarget = () => {
-    scroller.scrollTo(
-      String(String(playlistRef.current[playingRef.current]["id"])),
-      { ...scrollOptions, offset: offsetRef.current }
+
+  // Use the centralized auto-scroll hook
+  const { scrollToCurrentItem, setupAutoScrollOnUserActivity } = useAutoScroll({
+    playlist,
+    playing,
+    pageWidth,
+  });
+  useEffect(() => {
+    // Setup auto-scroll behavior on user activity
+    return setupAutoScrollOnUserActivity(surahsListContainerRef);
+  }, [setupAutoScrollOnUserActivity]);
+
+  useEffect(() => {
+    setTimeout(
+      () => scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT),
+      40
     );
-  };
-  useEffect(() => {
-    offsetRef.current = pageWidth <= 800 ? -165 : -120;
-  }, [pageWidth]);
-  useEffect(() => {
-    const handleScroll = () => {
-      clearTimeout(scrollTimeout.current as number);
-      scrollTimeout.current = setTimeout(scrollToTarget, 3500);
-    };
-
-    window.addEventListener("scroll", () => {
-      handleScroll();
-      if (surahsListContainerRef.current) {
-        const surahsListContainer: HTMLElement = surahsListContainerRef.current;
-        surahsListContainer.style.pointerEvents = "none";
-      }
-    });
-    window.addEventListener("mousemove", () => {
-      handleScroll();
-      if (surahsListContainerRef.current) {
-        const surahsListContainer: HTMLElement = surahsListContainerRef.current;
-        surahsListContainer.style.pointerEvents = "initial";
-      }
-    });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("mousemove", handleScroll);
-      clearTimeout(scrollTimeout.current as number);
-    };
-  }, []);
+  }, [qari, chooseReciter, scrollToCurrentItem]);
 
   useEffect(() => {
-    setTimeout(scrollToTarget, 1000);
-  }, [lang, qari]);
-  useEffect(() => {
-    playingRef.current = playing;
-    playlistRef.current = playlist;
-    setTimeout(scrollToTarget, 1000);
-  }, [playing, playlist]);
+    scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT);
+  }, [lang, searchResult, scrollToCurrentItem]);
+
   if (!chooseReciter) {
     surahsList.forEach(
       ({ id, name, start_page, end_page, makkia, type }, index) => {
         if (
-          name[lang as keyof typeof name]
-            .toLowerCase()
-            .replace(/-/g, "")
-            .replace(/'/g, "")
-            .includes(cleanedSearchResult) ||
+          normalizeText(name[lang as keyof typeof name]).includes(
+            cleanedSearchResult
+          ) ||
           String(id).startsWith(searchResult.trim())
         ) {
           availableSurahs.push(
