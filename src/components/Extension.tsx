@@ -42,7 +42,7 @@ const Extension = () => {
   useEffect(() => {
     setTimeout(
       () => scrollToCurrentItem(playing, SCROLL_DURATIONS.INSTANT),
-      20
+      50
     );
   }, [qari, chooseReciter, scrollToCurrentItem]);
 

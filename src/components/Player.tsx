@@ -273,7 +273,6 @@ const Player = () => {
       playingStateRef.current = true;
       playAudio(audio);
     }
-
     setAudioState({ ...audioState, playing: playingStateRef.current });
     setPlayOptions({
       playing: !audioState.playing,
@@ -383,11 +382,9 @@ const Player = () => {
       // Debounce progress bar clicks to prevent rapid clicking issues
       const now = Date.now();
       const timeSinceLastClick = now - lastProgressBarClickTime.current;
-      console.log(timeSinceLastClick);
       if (timeSinceLastClick < 300) {
         return;
       }
-      console.log("Clicked On Progress Bar!");
 
       lastProgressBarClickTime.current = now;
 
@@ -435,6 +432,8 @@ const Player = () => {
       // Immediately move pointer to mouse position for visual feedback
       positionPointer(pointer, clickX - 5, isRtl);
       progressBar.style.width = `${audioProgress}%`;
+      progressBar.style.transition = "none";
+      pointer.style.transition = "none";
 
       // CRITICAL: Pause audio BEFORE changing currentTime to prevent fragments
       if (!audio.paused) {
@@ -629,7 +628,7 @@ const Player = () => {
     if (audioState && !audioState.playing) {
       playBtn.click();
     }
-  }, [playing, qari, moshaf, lang, positionPointer]); // Consolidated dependencies
+  }, [playing, qari, moshaf, positionPointer]); // Consolidated dependencies
 
   // Update progress bar and pointer position
   useEffect(() => {
@@ -738,37 +737,7 @@ const Player = () => {
         cleanupInProgress.current = false;
       }, 10);
     };
-  }, [audioState, lang]);
-
-  // REMOVED: Duplicate "Reset the Slider on new Surah" effect - consolidated into track change effect above
-  useEffect(() => {
-    if (
-      !pointerRef.current ||
-      !progressRef.current ||
-      !audioState ||
-      !playBtnRef.current ||
-      !audioRef.current
-    ) {
-      return;
-    }
-
-    const pointer = pointerRef.current;
-    const progress = progressRef.current;
-    const isRtl = lang === "ar";
-
-    progress.style.width = "0";
-
-    if (isRtl) {
-      pointer.style.right = `-5px`;
-      pointer.style.left = "auto";
-    } else {
-      pointer.style.left = `-5px`;
-      pointer.style.right = "auto";
-    }
-
-    progress.style.transition = "none";
-    pointer.style.transition = "none";
-  }, [lang]);
+  }, [audioState]);
 
   // Change the volume on slider move
   useEffect(() => {
@@ -924,7 +893,7 @@ const Player = () => {
         }
       }, 10);
     }
-  }, [lang]); // Removed audioState from dependencies - only trigger on actual language changes
+  }, [lang]);
 
   useEffect(() => {
     const currentPlaying = playOptions?.playing;
